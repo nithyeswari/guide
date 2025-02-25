@@ -10,7 +10,10 @@ Welcome to the comprehensive React ecosystem documentation. This repository cont
 - [Routing](ROUTING.md)
 - [Latest](LATEST.md)
 - [Need to Know](KNOW.md)
-
+- [Micro Front End](MFE.md)
+- [Navigation Statergies](NAVIGATION.md)
+- [Layers General](Layers.md)
+- [Layers React Specific](layers-react.md)
 ### Development Tools
 - [Build Tools](docs/dev-tools/BUILD_TOOLS.md)
 - [Development Environment](docs/dev-tools/DEV_ENVIRONMENT.md)

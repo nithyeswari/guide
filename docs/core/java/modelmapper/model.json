@@ -1,0 +1,16 @@
+{
+  "SourceModelToTargetModel": {
+    "sourceId": "targetId",
+    "firstName": "fullName",
+    "lastName": "fullName",
+    "address": "addressInfo",
+    "contactInfo.email": "emailAddress",
+    "contactInfo.phone": "phoneNumber"
+  },
+  "AddressToAddressDto": {
+    "street": "streetAddress",
+    "city": "cityName",
+    "zipCode": "postalCode",
+    "country": "countryName"
+  }
+}

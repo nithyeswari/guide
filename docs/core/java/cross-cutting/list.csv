@@ -1,0 +1,37 @@
+Layer,Concern,Annotation,Purpose,Configuration,Benefits
+Unified API,SecureEndpoint,@SecureEndpoint,Combines security + rate limiting + monitoring,Custom meta-annotation,Single annotation for all public endpoints
+Unified API,CriticalOperation,@CriticalOperation,Combines circuit breaker + retry + timeout + logging,Custom meta-annotation with resilience4j,Standardized resilience for critical operations
+Unified API,CachedResourceAccess,@CachedResourceAccess,Combines caching + circuit breaker + metrics,Custom meta-annotation with Spring Cache,Optimized and resilient data access
+Unified API,ReadOperation,@ReadOperation,Combines read-only transaction + cache + timeout,Custom meta-annotation,Optimized read operations
+Unified API,WriteOperation,@WriteOperation,Combines write transaction + retry + validation + event emission,Custom meta-annotation,Reliable write operations
+API,Documentation,@Operation/@ApiResponse,Document API endpoints and responses,springdoc-openapi-ui dependency,Self-documenting APIs that can be discovered
+API,Security,@PreAuthorize/@Secured,Control access to endpoints,Spring Security configuration,Consistent security enforcement
+API,Rate Limiting,@RateLimiter,Prevent API abuse,resilience4j.ratelimiter configuration,Protection from traffic spikes
+API,Validation,@Valid/@Validated,Validate request inputs,JSR-380 validation framework,Consistent input validation
+API,Metrics,@Timed,Measure API response times,Micrometer + Prometheus configuration,Performance monitoring
+API,Headers,Custom headers in aspect,Add correlation IDs and metadata,Custom aspect implementation,Request tracing
+Service,Circuit Breaker,@CircuitBreaker,Prevent cascading failures,resilience4j.circuitbreaker configuration,System stability during partial outages
+Service,Retry,@Retry,Recover from transient failures,resilience4j.retry configuration,Resilience to temporary issues
+Service,Timeout,@Timeout,Prevent thread exhaustion,resilience4j.timelimiter configuration,Resource protection
+Service,Bulkhead,@Bulkhead,Isolate failures,resilience4j.bulkhead configuration,Failure isolation
+Service,Transaction,@Transactional,Ensure data consistency,Spring transaction management,Data integrity
+Service,Async,@Async,Non-blocking operations,Spring async executor configuration,Improved throughput
+Service,Logging,Custom aspect,Consistent logging,SLF4J + MDC configuration,Operational visibility
+Data,Caching,@Cacheable/@CachePut/@CacheEvict,Improve read performance,Spring Cache + provider configuration,Reduced database load
+Data,Connection Pool,HikariCP configuration,Manage database connections,Database connection pool settings,Efficient resource usage
+Data,Query Metrics,Custom aspects,Measure query performance,Micrometer + custom interceptors,Database performance monitoring
+Data,Read/Write Split,Custom annotations,Route queries to appropriate DB,DataSource routing configuration,Optimized data access
+Data,Resilience,@CircuitBreaker/@Retry,Handle database connectivity issues,Resilience4j + DB-specific settings,Database failure handling
+Data,Pagination,Repository methods,Manage large result sets,Spring Data pagination support,Memory efficiency
+Infrastructure,Service Discovery,Eureka Client/Consul Client,Locate services dynamically,Service registry configuration,Dynamic service routing
+Infrastructure,Configuration,@ConfigurationProperties,Externalize configuration,Spring Cloud Config,Environment-specific settings
+Infrastructure,Load Balancing,Client-side load balancing,Distribute requests across instances,Spring Cloud LoadBalancer,Traffic distribution
+Infrastructure,API Gateway,Gateway routes,Centralized API access,Spring Cloud Gateway,Unified entry point
+Infrastructure,Health Checks,Actuator endpoints,Verify service health,Spring Boot Actuator,Monitoring and auto-healing
+Infrastructure,Distributed Tracing,Automatic instrumentation,Track requests across services,Spring Cloud Sleuth + Zipkin,End-to-end visibility
+Multi-Cloud,Abstraction,Cloud-neutral services,Avoid vendor lock-in,Spring Cloud abstractions,Cloud portability
+Multi-Cloud,Region Failover,Multi-region deployment,Recover from region failures,Cross-region routing,High availability
+Multi-Cloud,Data Replication,Database-specific replication,Ensure data consistency across clouds,Database replication configuration,Data resilience
+Multi-Cloud,Secrets Management,External secrets provider,Secure credential management,Vault/AWS Secrets Manager/Azure Key Vault,Secure secrets handling
+Multi-Cloud,Network Policies,Infrastructure as code,Control service communication,Terraform/CloudFormation/ARM templates,Consistent networking
+Multi-Cloud,Cost Optimization,Resource allocation policies,Optimize resource usage across clouds,Kubernetes resource limits,Cost efficiency
