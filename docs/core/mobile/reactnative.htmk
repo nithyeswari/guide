@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f5f5f5"/>
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial" font-size="24" font-weight="bold" text-anchor="middle">React Native Architecture on Android</text>
+  
+  <!-- Layers -->
+  <g>
+    <!-- JavaScript Layer -->
+    <rect x="50" y="80" width="700" height="120" rx="10" fill="#61dafb" opacity="0.7"/>
+    <text x="400" y="105" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">JavaScript Layer</text>
+    
+    <rect x="80" y="120" width="150" height="60" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="155" y="155" font-family="Arial" font-size="14" text-anchor="middle">React Components</text>
+    
+    <rect x="270" y="120" width="150" height="60" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="345" y="148" font-family="Arial" font-size="14" text-anchor="middle">JavaScript Thread</text>
+    <text x="345" y="168" font-family="Arial" font-size="12" text-anchor="middle">(JavaScriptCore VM)</text>
+    
+    <rect x="460" y="120" width="150" height="60" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="535" y="155" font-family="Arial" font-size="14" text-anchor="middle">Redux/State Management</text>
+    
+    <!-- Bridge Layer -->
+    <rect x="50" y="220" width="700" height="100" rx="10" fill="#fd8d3c" opacity="0.7"/>
+    <text x="400" y="245" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">Bridge Layer (JSON Serialization)</text>
+    
+    <rect x="175" y="260" width="450" height="40" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="400" y="285" font-family="Arial" font-size="14" text-anchor="middle">Asynchronous Bridge / New Architecture: JSI (JavaScript Interface)</text>
+    
+    <!-- Native Layer -->
+    <rect x="50" y="340" width="700" height="120" rx="10" fill="#74c476" opacity="0.7"/>
+    <text x="400" y="365" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">Native Layer</text>
+    
+    <rect x="80" y="380" width="130" height="60" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="145" y="415" font-family="Arial" font-size="14" text-anchor="middle">Native Modules</text>
+    
+    <rect x="235" y="380" width="130" height="60" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="300" y="415" font-family="Arial" font-size="14" text-anchor="middle">Shadow Thread</text>
+    
+    <rect x="390" y="380" width="130" height="60" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="455" y="408" font-family="Arial" font-size="14" text-anchor="middle">UI Thread</text>
+    <text x="455" y="428" font-family="Arial" font-size="12" text-anchor="middle">(Main Thread)</text>
+    
+    <rect x="545" y="380" width="130" height="60" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="610" y="408" font-family="Arial" font-size="14" text-anchor="middle">Yoga Layout</text>
+    <text x="610" y="428" font-family="Arial" font-size="12" text-anchor="middle">(C++ Flexbox)</text>
+    
+    <!-- Android Layer -->
+    <rect x="50" y="480" width="700" height="80" rx="10" fill="#9e9ac8" opacity="0.7"/>
+    <text x="400" y="505" font-family="Arial" font-size="18" font-weight="bold" text-anchor="middle">Android Platform Layer</text>
+    
+    <rect x="175" y="520" width="150" height="30" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="250" y="540" font-family="Arial" font-size="14" text-anchor="middle">Android Views</text>
+    
+    <rect x="375" y="520" width="150" height="30" rx="5" fill="#ffffff" stroke="#000000"/>
+    <text x="450" y="540" font-family="Arial" font-size="14" text-anchor="middle">Native Android APIs</text>
+  </g>
+  
+  <!-- Arrows -->
+  <g fill="none" stroke="#000000" stroke-width="2">
+    <!-- JS Layer to Bridge -->
+    <path d="M 155 180 L 155 240" marker-end="url(#arrowhead)"/>
+    <path d="M 345 180 L 345 240" marker-end="url(#arrowhead)"/>
+    <path d="M 535 180 L 535 240" marker-end="url(#arrowhead)"/>
+    
+    <!-- Bridge to Native Layer -->
+    <path d="M 300 300 L 300 380" marker-end="url(#arrowhead)"/>
+    <path d="M 455 300 L 455 380" marker-end="url(#arrowhead)"/>
+    
+    <!-- Between Native Components -->
+    <path d="M 145 440 L 145 520" marker-end="url(#arrowhead)"/>
+    <path d="M 300 440 L 300 500 L 250 500 L 250 520" marker-end="url(#arrowhead)"/>
+    <path d="M 455 440 L 455 500 L 450 500 L 450 520" marker-end="url(#arrowhead)"/>
+    <path d="M 610 440 L 610 500 L 450 500" marker-end="url(#arrowhead)"/>
+    
+    <!-- Horizontal connections in Native Layer -->
+    <path d="M 210 410 L 235 410"/>
+    <path d="M 365 410 L 390 410"/>
+    <path d="M 520 410 L 545 410"/>
+  </g>
+  
+  <!-- Arrowhead marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" />
+    </marker>
+  </defs>
+  
+  <!-- Annotations -->
+  <g font-family="Arial" font-size="12" fill="#555555">
+    <text x="180" y="210" text-anchor="middle">Render</text>
+    <text x="360" y="210" text-anchor="middle">Execute</text>
+    <text x="550" y="210" text-anchor="middle">Update</text>
+    <text x="240" y="330" text-anchor="middle">Batched UI Updates</text>
+    <text x="510" y="330" text-anchor="middle">Native Method Calls</text>
+  </g>
+</svg>
