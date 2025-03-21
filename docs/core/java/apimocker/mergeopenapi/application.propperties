@@ -1,0 +1,15 @@
+# SpringDoc OpenAPI configuration
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.api-docs.path=/api-docs
+springdoc.swagger-ui.disable-swagger-default-url=true
+springdoc.swagger-ui.use-root-path=true
+springdoc.swagger-ui.display-request-duration=true
+springdoc.show-actuator=false
+
+# Locations for OpenAPI YAML files to load
+# Can be multiple locations using comma separation
+openapi.spec.locations=classpath:openapi/*.yaml
+
+# Other useful SpringDoc settings
+springdoc.swagger-ui.doc-expansion=none
+springdoc.swagger-ui.default-model-expand-depth=3
