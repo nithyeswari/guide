@@ -73,7 +73,7 @@ Apply to specific endpoints:
 @RequestMapping("/api")
 public class ApiController {
     @GetMapping("/resource")
-    @ProcessHeaders  // Enable header processing for this endpoint
+    @ProcessHeaders[ProcessHeader.java] // Enable header processing for this endpoint
     public ResponseEntity<?> getResource(ApiHeaders headers) {
         // Headers are automatically populated
         String clientId = headers.getClientId();
