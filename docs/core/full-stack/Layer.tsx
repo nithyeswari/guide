@@ -137,19 +137,19 @@ const SecurityArchitecture = () => {
               <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>{layer.component}</p>
             </div>
           </div>
-          <div className="text-gray-600">
+          <div style={{ color: '#4b5563' }}>
             {isActive ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
           </div>
         </div>
         
         {isActive && (
-          <div className="mt-2 p-4 bg-white rounded-lg border border-gray-200">
-            <h4 className="font-semibold mb-2">Security Controls:</h4>
-            <ul className="mb-4">
+          <div style={{ marginTop: '0.5rem', padding: '1rem', backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+            <h4 style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Security Controls:</h4>
+            <ul style={{ marginBottom: '1rem' }}>
               {layer.securityControls.map((control, idx) => (
-                <li key={idx} className="mb-2">
-                  <div className="font-medium">{control.name}</div>
-                  <div className="text-sm text-gray-600">{control.description}</div>
+                <li key={idx} style={{ marginBottom: '0.5rem' }}>
+                  <div style={{ fontWeight: '500' }}>{control.name}</div>
+                  <div style={{ fontSize: '0.875rem', color: '#4b5563' }}>{control.description}</div>
                 </li>
               ))}
             </ul>
@@ -158,9 +158,9 @@ const SecurityArchitecture = () => {
             <p className="text-sm text-gray-700 mb-4">{layer.dataProtection}</p>
             
             <h4 className="font-semibold mb-2">Primary Threats Addressed:</h4>
-            <div className="flex flex-wrap gap-2">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               {layer.threats.map((threat, idx) => (
-                <span key={idx} className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+                <span key={idx} style={{ fontSize: '0.75rem', backgroundColor: '#f3f4f6', color: '#1f2937', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
                   {threat}
                 </span>
               ))}
@@ -169,8 +169,8 @@ const SecurityArchitecture = () => {
         )}
         
         {index < layers.length - 1 && (
-          <div className="flex justify-center my-2">
-            <div className="w-0 h-6 border-l-2 border-gray-300"></div>
+          <div style={{ display: 'flex', justifyContent: 'center', margin: '0.5rem 0' }}>
+            <div style={{ width: 0, height: '1.5rem', borderLeft: '2px solid #d1d5db' }}></div>
           </div>
         )}
       </div>
@@ -178,10 +178,10 @@ const SecurityArchitecture = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-6 text-center">
-        <h1 className="text-2xl font-bold mb-2">Payment System Security Architecture</h1>
-        <p className="text-gray-600">Click on each layer to see detailed security controls</p>
+    <div style={{ maxWidth: '48rem', margin: '0 auto', padding: '1.5rem' }}>
+      <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Payment System Security Architecture</h1>
+        <p style={{ color: '#4b5563' }}>Click on each layer to see detailed security controls</p>
       </div>
       
       <div>
@@ -195,9 +195,9 @@ const SecurityArchitecture = () => {
         ))}
       </div>
       
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 className="font-bold mb-2">Security Architecture Overview</h3>
-        <p className="text-sm text-gray-700">
+      <div style={{ marginTop: '1.5rem', padding: '1rem', backgroundColor: '#f9fafb', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+        <h3 style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>Security Architecture Overview</h3>
+        <p style={{ fontSize: '0.875rem', color: '#374151' }}>
           This multi-layered security approach implements defense in depth for our payment system.
           Each layer provides independent security controls, ensuring that compromise of a single layer
           does not compromise the entire system. All data is protected in transit and at rest through
