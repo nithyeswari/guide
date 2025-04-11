@@ -65,18 +65,31 @@ const App = () => {
   };
 
   return (
-    <div className="p-4 max-w-full">
-      <h1 className="text-2xl font-bold mb-4">Development Frameworks Market Share</h1>
+    <div style={{padding: '1rem', maxWidth: '100%'}}>
+      <h1 style={{fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '1rem'}}>Development Frameworks Market Share</h1>
+      <p style={{color: '#718096', marginBottom: '1rem'}}>Visualization of market share percentages across web, mobile, and wearable development frameworks.</p>
       
-      <div className="mb-4 flex">
+      <div style={{marginBottom: '1rem', display: 'flex'}}>
         <button 
-          className={`px-4 py-2 ${activeTab === 'chart' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded-l-md`}
+          style={{
+            padding: '0.5rem 1rem', 
+            backgroundColor: activeTab === 'chart' ? '#3b82f6' : '#e5e7eb',
+            color: activeTab === 'chart' ? 'white' : 'black',
+            borderTopLeftRadius: '0.375rem',
+            borderBottomLeftRadius: '0.375rem'
+          }}
           onClick={() => setActiveTab('chart')}
         >
           Pie Chart
         </button>
         <button 
-          className={`px-4 py-2 ${activeTab === 'table' ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded-r-md`}
+          style={{
+            padding: '0.5rem 1rem', 
+            backgroundColor: activeTab === 'table' ? '#3b82f6' : '#e5e7eb',
+            color: activeTab === 'table' ? 'white' : 'black',
+            borderTopRightRadius: '0.375rem',
+            borderBottomRightRadius: '0.375rem'
+          }}
           onClick={() => setActiveTab('table')}
         >
           Data Table
@@ -84,11 +97,27 @@ const App = () => {
       </div>
       
       {activeTab === 'chart' && (
-        <div className="border rounded-md p-4 bg-white">
-          <ResponsiveContainer width="100%" height={400}>
+        <div style={{border: '1px solid #e2e8f0', borderRadius: '0.375rem', padding: '1rem', backgroundColor: 'white'}}>
+          <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '0.5rem'}}>
+            <div style={{display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center'}}>
+              {sortedFrameworks.map((entry, index) => (
+                <div key={index} style={{display: 'flex', alignItems: 'center'}}>
+                  <div style={{ 
+                    backgroundColor: COLORS[index % COLORS.length], 
+                    width: '12px', 
+                    height: '12px', 
+                    marginRight: '5px', 
+                    borderRadius: '0.125rem' 
+                  }}></div>
+                  <span style={{fontSize: '0.75rem'}}>{entry.name}: {entry.marketShare}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={500}>
             <PieChart>
               <Pie
-                data={frameworks}
+                data={sortedFrameworks}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
