@@ -151,33 +151,33 @@ const App = () => {
               <Legend />
             </PieChart>
           </ResponsiveContainer>
-          <p className="text-sm text-gray-500 mt-2 text-center">*Market share estimates for visualization purposes (2025)</p>
+          <p style={{fontSize: '0.875rem', color: '#6b7280', marginTop: '0.5rem', textAlign: 'center'}}>*Market share estimates for visualization purposes (2025)</p>
         </div>
       )}
       
       {activeTab === 'table' && (
-        <div className="border rounded-md p-4 bg-white overflow-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div style={{border: '1px solid #e2e8f0', borderRadius: '0.375rem', padding: '1rem', backgroundColor: 'white', overflowX: 'auto'}}>
+          <table style={{minWidth: '100%', borderCollapse: 'collapse'}}>
+            <thead style={{backgroundColor: '#f9fafb'}}>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Framework</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Market Share (%)</th>
+                <th style={{padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Framework</th>
+                <th style={{padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Category</th>
+                <th style={{padding: '0.75rem 1.5rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '500', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em'}}>Market Share (%)</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody style={{backgroundColor: 'white'}}>
               {fullData.map((item, index) => (
-                <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.category}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.marketShare}</td>
+                <tr key={index} style={{backgroundColor: index % 2 === 0 ? 'white' : '#f9fafb', borderTop: '1px solid #e2e8f0'}}>
+                  <td style={{padding: '1rem 1.5rem', whiteSpace: 'nowrap', fontSize: '0.875rem', fontWeight: '500', color: '#111827'}}>{item.name}</td>
+                  <td style={{padding: '1rem 1.5rem', whiteSpace: 'nowrap', fontSize: '0.875rem', color: '#6b7280'}}>{item.category}</td>
+                  <td style={{padding: '1rem 1.5rem', whiteSpace: 'nowrap', fontSize: '0.875rem', color: '#6b7280'}}>{item.marketShare}</td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <div className="mt-4">
-            <h3 className="font-medium mb-2">CSV Data:</h3>
-            <pre className="bg-gray-100 p-2 rounded-md text-xs overflow-auto max-h-40">
+          <div style={{marginTop: '1rem'}}>
+            <h3 style={{fontWeight: '500', marginBottom: '0.5rem'}}>CSV Data:</h3>
+            <pre style={{backgroundColor: '#f3f4f6', padding: '0.5rem', borderRadius: '0.375rem', fontSize: '0.75rem', overflow: 'auto', maxHeight: '10rem'}}>
               {csvData}
             </pre>
           </div>
