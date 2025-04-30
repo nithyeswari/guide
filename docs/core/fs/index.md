@@ -1,5 +1,6 @@
 
 ## Getting Started
+1. 
 2. [Full Stack Blogs](blog.md)
 3. [Full Stack Developer ](FULL_STACK.md)
 4. [Patterns to Know](Fullstack_Patterns.md)
