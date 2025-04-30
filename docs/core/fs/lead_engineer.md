@@ -163,4 +163,9 @@
 - [Docker](https://github.com/docker/docker-ce)
 - [Git](https://github.com/git/git)
 
+### Books
+[Backend](https://learning.oreilly.com/search/?q=author%3A%22Saurabh%20Shrivastava%22&rows=100)
+[React](https://learning.oreilly.com/search/?q=author%3A%22Maximilian+Schwarzm%C3%BCller%22)
+
+
 Note: Always verify links and resources are up to date, as URLs and repositories may change over time. Consider bookmarking essential resources and maintaining an internal knowledge base for your team.
