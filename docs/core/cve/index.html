@@ -1,0 +1,881 @@
+# Spring Boot Security Strategy - Complete Guide
+
+## Table of Contents
+1. [Executive Summary](#executive-summary)
+2. [Industry Best Practices](#industry-best-practices)
+3. [Tools and Technologies](#tools-and-technologies)
+4. [Left-Shift Security Implementation](#left-shift-security-implementation)
+5. [Common Spring Boot Vulnerabilities](#common-spring-boot-vulnerabilities)
+6. [Monitoring and Detection](#monitoring-and-detection)
+7. [Repository Links and Resources](#repository-links-and-resources)
+8. [Implementation Roadmap](#implementation-roadmap)
+
+## Executive Summary
+
+### Key Statistics
+- **78%** of applications contain at least one vulnerable component (Veracode State of Software Security 2024)
+- **Left-shift security** reduces remediation costs by **6x** compared to post-deployment fixes
+- **Spring Boot** applications average **15-20 dependencies** with potential vulnerabilities
+
+### Business Impact
+- **Cost Reduction**: Early detection saves $1M+ per critical vulnerability
+- **Compliance**: Meets SOC2, ISO 27001, and regulatory requirements
+- **Risk Mitigation**: 95% reduction in production security incidents
+
+## Industry Best Practices
+
+### 1. OWASP Top 10 for Spring Boot Applications
+
+#### A01: Broken Access Control
+```java
+// BAD - Direct object reference
+@GetMapping("/user/{id}")
+public User getUser(@PathVariable Long id) {
+    return userService.findById(id); // No authorization check
+}
+
+// GOOD - Proper authorization
+@GetMapping("/user/{id}")
+@PreAuthorize("@userService.canAccess(authentication.name, #id)")
+public User getUser(@PathVariable Long id) {
+    return userService.findById(id);
+}
+```
+
+#### A06: Vulnerable and Outdated Components
+- **Automated scanning** in CI/CD pipelines
+- **Regular updates** with security patches
+- **Dependency pinning** to avoid supply chain attacks
+
+### 2. NIST Cybersecurity Framework Integration
+
+#### Identify
+- Asset inventory of all Spring Boot applications
+- Data flow mapping and classification
+- Threat modeling for microservices architecture
+
+#### Protect
+- Secure coding standards enforcement
+- Multi-factor authentication implementation
+- Network segmentation and API gateways
+
+#### Detect
+- Real-time vulnerability scanning
+- SIEM integration for Spring Boot logs
+- Behavioral anomaly detection
+
+#### Respond
+- Incident response playbooks
+- Automated rollback procedures
+- Communication protocols
+
+#### Recover
+- Business continuity planning
+- Backup and restore procedures
+- Post-incident analysis
+
+## Tools and Technologies
+
+### 1. Static Application Security Testing (SAST)
+
+#### SonarQube
+```yaml
+# sonar-project.properties
+sonar.projectKey=spring-boot-app
+sonar.sources=src/main
+sonar.tests=src/test
+sonar.java.coveragePlugin=jacoco
+sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+```
+
+**Pricing**: Community (Free) | Developer ($150/year) | Enterprise (Custom)
+**Repository**: https://github.com/SonarSource/sonarqube
+
+#### Checkmarx SAST
+- **Features**: Advanced taint analysis, custom rules
+- **Integration**: Jenkins, Azure DevOps, GitHub Actions
+- **Pricing**: Contact for enterprise pricing
+
+### 2. Software Composition Analysis (SCA)
+
+#### OWASP Dependency Check
+```xml
+<plugin>
+    <groupId>org.owasp</groupId>
+    <artifactId>dependency-check-maven</artifactId>
+    <version>8.4.0</version>
+    <configuration>
+        <failBuildOnCVSS>7</failBuildOnCVSS>
+        <suppressionFile>dependency-check-suppressions.xml</suppressionFile>
+    </configuration>
+</plugin>
+```
+
+#### Snyk
+```yaml
+# .snyk file
+# Snyk (https://snyk.io) policy file
+version: v1.0.0
+ignore: {}
+patch: {}
+```
+
+**Features**:
+- Real-time vulnerability database
+- Fix recommendations
+- Container scanning
+- IaC scanning
+
+**Pricing**: Free (Open Source) | Team ($25/month) | Business ($52/month)
+**Repository**: https://github.com/snyk/snyk
+
+#### GitHub Security Advisories
+```yaml
+# .github/workflows/security.yml
+name: Security Scan
+on: [push, pull_request]
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Snyk
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+```
+
+### 3. Dynamic Application Security Testing (DAST)
+
+#### OWASP ZAP
+```yaml
+# ZAP Docker configuration
+zap-baseline-scan:
+  image: owasp/zap2docker-stable
+  script:
+    - zap-baseline.py -t http://localhost:8080 -r zap-report.html
+```
+
+#### Burp Suite Enterprise
+- **Features**: Automated crawling, custom scan configurations
+- **Integration**: REST API for CI/CD
+- **Pricing**: $3,999/year per scanner
+
+### 4. Interactive Application Security Testing (IAST)
+
+#### Contrast Security
+- **Runtime protection**: Real-time threat blocking
+- **Accurate results**: Low false positives
+- **DevOps integration**: Seamless CI/CD workflow
+
+## Left-Shift Security Implementation
+
+### 1. Pre-Commit Hooks
+
+```bash
+#!/bin/sh
+# .git/hooks/pre-commit
+echo "Running security checks..."
+
+# Check for secrets
+git diff --cached --name-only | xargs grep -l "password\|secret\|key" && {
+    echo "Potential secrets detected!"
+    exit 1
+}
+
+# Run dependency check
+mvn org.owasp:dependency-check-maven:check
+if [ $? -ne 0 ]; then
+    echo "Vulnerability check failed!"
+    exit 1
+fi
+```
+
+### 2. CI/CD Pipeline Integration
+
+#### GitHub Actions
+```yaml
+name: Security Pipeline
+on: [push, pull_request]
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          
+      - name: OWASP Dependency Check
+        run: mvn org.owasp:dependency-check-maven:check
+        
+      - name: SonarQube Scan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: mvn sonar:sonar
+        
+      - name: Snyk Security Scan
+        uses: snyk/actions/maven@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: dependency-check-report.sarif
+```
+
+#### Jenkins Pipeline
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Security Scan') {
+            parallel {
+                stage('SAST') {
+                    steps {
+                        sh 'mvn sonar:sonar'
+                    }
+                }
+                stage('SCA') {
+                    steps {
+                        sh 'mvn org.owasp:dependency-check-maven:check'
+                    }
+                }
+                stage('Container Scan') {
+                    steps {
+                        sh 'docker run --rm -v $(pwd):/app aquasec/trivy fs /app'
+                    }
+                }
+            }
+        }
+        stage('Security Gate') {
+            steps {
+                script {
+                    def qualityGate = waitForQualityGate()
+                    if (qualityGate.status != 'OK') {
+                        error "Pipeline aborted due to quality gate failure: ${qualityGate.status}"
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+### 3. IDE Integration
+
+#### IntelliJ IDEA Plugins
+- **SonarLint**: Real-time code analysis
+- **Snyk Vulnerability Scanner**: Dependency scanning
+- **OWASP Dependency Check**: Maven integration
+
+#### VS Code Extensions
+- **SonarLint**: Code quality and security
+- **Snyk Security**: Vulnerability detection
+- **GitLens**: Security annotations in git history
+
+## Common Spring Boot Vulnerabilities
+
+### 1. Dependency Vulnerabilities
+
+#### High-Risk Dependencies
+```xml
+<!-- Example of vulnerable dependencies -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <version>2.5.0</version> <!-- Vulnerable version -->
+</dependency>
+
+<!-- Updated secure version -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <version>3.2.0</version> <!-- Secure version -->
+</dependency>
+```
+
+#### Common CVEs
+- **CVE-2022-22965** (Spring4Shell): RCE in Spring MVC
+- **CVE-2022-22963** (Spring Cloud): Code injection
+- **CVE-2021-44228** (Log4j): LDAP injection
+
+### 2. Configuration Issues
+
+#### Insecure Actuator Endpoints
+```yaml
+# application.yml - INSECURE
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" # Exposes all endpoints
+
+# SECURE configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+  security:
+    enabled: true
+```
+
+#### Weak Security Headers
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.headers(headers -> headers
+            .frameOptions().deny()
+            .contentTypeOptions().and()
+            .httpStrictTransportSecurity(hstsConfig -> hstsConfig
+                .maxAgeInSeconds(31536000)
+                .includeSubdomains(true))
+            .and()
+        );
+        return http.build();
+    }
+}
+```
+
+### 3. Authentication and Authorization Flaws
+
+#### JWT Security Issues
+```java
+// INSECURE - Weak secret
+@Value("${jwt.secret:myweaksecret}")
+private String jwtSecret;
+
+// SECURE - Strong secret with proper validation
+@Value("${jwt.secret}")
+private String jwtSecret; // Must be at least 256 bits
+
+public boolean validateToken(String token) {
+    try {
+        Jwts.parserBuilder()
+            .setSigningKey(getSignKey())
+            .requireIssuer("your-app")
+            .requireAudience("your-audience")
+            .build()
+            .parseClaimsJws(token);
+        return true;
+    } catch (JwtException | IllegalArgumentException e) {
+        return false;
+    }
+}
+```
+
+## Monitoring and Detection
+
+### 1. Real-time Vulnerability Scanning
+
+#### Continuous Monitoring Tools
+- **WhiteSource Renovate**: Automated dependency updates
+- **Dependabot**: GitHub native dependency management
+- **JFrog Xray**: Binary repository scanning
+
+#### Custom Monitoring Solution
+```java
+@Component
+public class VulnerabilityMonitor {
+    
+    @Scheduled(cron = "0 0 2 * * ?") // Daily at 2 AM
+    public void scanDependencies() {
+        // Trigger dependency scan
+        ProcessBuilder pb = new ProcessBuilder("mvn", "org.owasp:dependency-check-maven:check");
+        // Process results and send alerts
+    }
+}
+```
+
+### 2. Security Metrics and KPIs
+
+#### Key Performance Indicators
+- **Mean Time to Detection (MTTD)**: Average time to identify vulnerabilities
+- **Mean Time to Remediation (MTTR)**: Average time to fix vulnerabilities
+- **Vulnerability Density**: Vulnerabilities per 1000 lines of code
+- **Security Test Coverage**: Percentage of code covered by security tests
+
+#### Metrics Collection
+```java
+@Component
+public class SecurityMetrics {
+    
+    private final MeterRegistry meterRegistry;
+    
+    public void recordVulnerabilityDetected(String severity) {
+        Counter.builder("security.vulnerability.detected")
+            .tag("severity", severity)
+            .register(meterRegistry)
+            .increment();
+    }
+    
+    public void recordRemediationTime(Duration duration, String severity) {
+        Timer.builder("security.remediation.time")
+            .tag("severity", severity)
+            .register(meterRegistry)
+            .record(duration);
+    }
+}
+```
+
+## Repository Links and Resources
+
+### 1. Official Documentation and Guides
+- **Spring Security**: https://spring.io/projects/spring-security
+- **Spring Boot Security**: https://spring.io/guides/gs/securing-web/
+- **Spring Security Reference**: https://docs.spring.io/spring-security/reference/
+- **Spring Boot Actuator Security**: https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.monitoring
+- **OWASP Spring Security Cheat Sheet**: https://cheatsheetseries.owasp.org/cheatsheets/Spring_Security_Cheat_Sheet.html
+- **Spring Security Architecture**: https://spring.io/guides/topicals/spring-security-architecture/
+- **Baeldung Spring Security**: https://www.baeldung.com/security-spring
+- **Spring Security OAuth2**: https://spring.io/projects/spring-security-oauth
+
+### 2. Security Tools and Scanners
+- **OWASP Dependency Check**: https://github.com/jeremylong/DependencyCheck
+- **OWASP ZAP**: https://github.com/zaproxy/zaproxy
+- **SpotBugs Security**: https://github.com/spotbugs/spotbugs
+- **FindSecBugs**: https://github.com/find-sec-bugs/find-sec-bugs
+- **PMD Security Rules**: https://github.com/pmd/pmd
+- **SonarQube Security Rules**: https://github.com/SonarSource/sonar-java
+- **Checkmarx CxSAST**: https://checkmarx.com/resource/documents/en/34965-68702-checkmarx-sast-cli-guide.html
+- **Veracode Static Analysis**: https://docs.veracode.com/r/c_about_static_analysis
+- **Semgrep Security Rules**: https://github.com/returntocorp/semgrep-rules
+- **CodeQL Security Queries**: https://github.com/github/codeql
+
+### 3. Vulnerability Databases and Intelligence
+- **National Vulnerability Database (NVD)**: https://nvd.nist.gov/
+- **CVE Details**: https://www.cvedetails.com/
+- **Snyk Vulnerability Database**: https://security.snyk.io/
+- **GitHub Security Advisories**: https://github.com/advisories
+- **MITRE CVE**: https://cve.mitre.org/
+- **VulnDB**: https://vulndb.cyberriskanalytics.com/
+- **Exploit Database**: https://www.exploit-db.com/
+- **Spring Security Advisories**: https://spring.io/security-policy
+- **Java Security Advisories**: https://www.oracle.com/security-alerts/
+- **Apache Security Reports**: https://www.apache.org/security/
+
+### 4. Open Source Security Projects
+- **OWASP Top 10**: https://owasp.org/www-project-top-ten/
+- **OWASP WebGoat**: https://github.com/WebGoat/WebGoat
+- **OWASP Security Shepherd**: https://github.com/OWASP/SecurityShepherd
+- **Spring Security Samples**: https://github.com/spring-projects/spring-security-samples
+- **Secure Code Warrior**: https://github.com/SecureCodeWarrior/secure-code-review-101
+- **OWASP Java Encoder**: https://github.com/OWASP/owasp-java-encoder
+- **OWASP ESAPI**: https://github.com/ESAPI/esapi-java-legacy
+- **Spring Petclinic (Secure)**: https://github.com/spring-petclinic/spring-petclinic-microservices
+- **Damn Vulnerable Spring Boot App**: https://github.com/pyn3rd/damn-vulnerable-spring-boot-app
+
+### 5. CI/CD Integration Examples
+- **GitHub Actions Security**: https://github.com/marketplace/actions/security-code-scan
+- **Jenkins Security Plugin**: https://github.com/jenkinsci/security-inspector-plugin
+- **GitLab Security Templates**: https://docs.gitlab.com/ee/user/application_security/
+- **Azure DevOps Security**: https://docs.microsoft.com/en-us/azure/devops/pipelines/security/
+- **CircleCI Security Orbs**: https://circleci.com/developer/orbs/orb/circleci/security
+- **Travis CI Security**: https://docs.travis-ci.com/user/security/
+- **Tekton Security Pipelines**: https://github.com/tektoncd/catalog/tree/main/task
+
+### 6. Training and Certification Resources
+- **OWASP WebGoat**: https://github.com/WebGoat/WebGoat
+- **Secure Code Warrior**: https://securecodewarrior.com/
+- **Checkmarx Codebashing**: https://www.checkmarx.com/codebashing/
+- **SANS Secure Coding**: https://www.sans.org/cyber-security-courses/secure-coding-java-ee/
+- **Coursera Cybersecurity**: https://www.coursera.org/specializations/cyber-security
+- **edX Security Courses**: https://www.edx.org/learn/cybersecurity
+- **Pluralsight Security**: https://www.pluralsight.com/browse/software-development/security
+
+### 7. Industry Standards and Frameworks
+- **NIST Cybersecurity Framework**: https://www.nist.gov/cyberframework
+- **ISO 27001/27002**: https://www.iso.org/isoiec-27001-information-security.html
+- **SOC 2 Type II**: https://www.aicpa.org/interestareas/frc/assuranceadvisoryservices/aicpasoc2report.html
+- **PCI DSS**: https://www.pcisecuritystandards.org/
+- **GDPR Compliance**: https://gdpr.eu/
+- **HIPAA Security**: https://www.hhs.gov/hipaa/for-professionals/security/
+- **CIS Controls**: https://www.cisecurity.org/controls/
+- **OWASP ASVS**: https://github.com/OWASP/ASVS
+- **NIST SP 800-53**: https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final
+
+### 8. Security Testing Frameworks
+- **OWASP Testing Guide**: https://github.com/OWASP/wstg
+- **REST Assured Security**: https://github.com/rest-assured/rest-assured/wiki/Usage#authentication
+- **TestContainers Security**: https://www.testcontainers.org/modules/mockserver/
+- **WireMock Security**: https://github.com/wiremock/wiremock
+- **Spring Security Test**: https://docs.spring.io/spring-security/reference/servlet/test/
+- **JUnit Security Extensions**: https://github.com/stefanbirkner/system-rules
+
+### 9. Cloud Security Resources
+- **AWS Security Best Practices**: https://aws.amazon.com/architecture/security-identity-compliance/
+- **Azure Security Center**: https://docs.microsoft.com/en-us/azure/security-center/
+- **GCP Security Command Center**: https://cloud.google.com/security-command-center
+- **Kubernetes Security**: https://kubernetes.io/docs/concepts/security/
+- **Docker Security**: https://docs.docker.com/engine/security/
+- **Terraform Security**: https://github.com/aquasecurity/tfsec
+
+### 10. Threat Intelligence and Research
+- **MITRE ATT&CK**: https://attack.mitre.org/
+- **SANS Internet Storm Center**: https://isc.sans.edu/
+- **Krebs on Security**: https://krebsonsecurity.com/
+- **Dark Reading**: https://www.darkreading.com/
+- **Security Week**: https://www.securityweek.com/
+- **The Hacker News**: https://thehackernews.com/
+- **CVE Trends**: https://cvetrends.com/
+
+## Security Assessment Framework (SAF)
+
+### Framework Overview
+The Security Assessment Framework provides a structured approach to evaluating and improving Spring Boot application security posture through continuous assessment and improvement cycles.
+
+### 1. Assessment Dimensions
+
+#### A. Technical Security Controls
+```mermaid
+graph TD
+    A[Technical Controls] --> B[Authentication & Authorization]
+    A --> C[Data Protection]
+    A --> D[Input Validation]
+    A --> E[Session Management]
+    A --> F[Error Handling]
+    A --> G[Logging & Monitoring]
+    
+    B --> B1[Multi-factor Authentication]
+    B --> B2[Role-based Access Control]
+    B --> B3[OAuth2/JWT Implementation]
+    
+    C --> C1[Encryption at Rest]
+    C --> C2[Encryption in Transit]
+    C --> C3[Key Management]
+    
+    D --> D1[Parameter Validation]
+    D --> D2[SQL Injection Prevention]
+    D --> D3[XSS Protection]
+```
+
+#### B. Process Security Controls
+- **Secure Development Lifecycle (SDLC)** integration
+- **Code review** processes with security focus
+- **Vulnerability management** workflows
+- **Incident response** procedures
+- **Security training** programs
+
+#### C. Infrastructure Security Controls
+- **Container security** hardening
+- **Network segmentation** implementation
+- **API gateway** security configurations
+- **Database security** controls
+- **Cloud security** posture management
+
+### 2. Maturity Model
+
+#### Level 1: Initial (Ad-hoc)
+- Basic security controls implemented reactively
+- No formal security processes
+- Limited security awareness
+- **Score: 0-25%**
+
+#### Level 2: Managed (Repeatable)
+- Some security processes documented
+- Basic vulnerability scanning implemented
+- Security training initiated
+- **Score: 26-50%**
+
+#### Level 3: Defined (Consistent)
+- Comprehensive security policies established
+- Automated security testing integrated
+- Regular security assessments conducted
+- **Score: 51-75%**
+
+#### Level 4: Quantitatively Managed (Measured)
+- Security metrics actively monitored
+- Risk-based decision making implemented
+- Advanced threat detection capabilities
+- **Score: 76-90%**
+
+#### Level 5: Optimizing (Continuous Improvement)
+- Continuous security improvement culture
+- Advanced threat intelligence integration
+- Zero-trust architecture implementation
+- **Score: 91-100%**
+
+### 3. Assessment Methodology
+
+#### Phase 1: Discovery and Inventory
+```bash
+# Asset Discovery Script
+#!/bin/bash
+echo "=== Spring Boot Application Discovery ==="
+find . -name "pom.xml" -exec grep -l "spring-boot" {} \;
+find . -name "build.gradle" -exec grep -l "spring-boot" {} \;
+
+echo "=== Dependency Analysis ==="
+mvn dependency:tree | grep -E "(spring|security|oauth)"
+
+echo "=== Configuration Review ==="
+find . -name "application*.yml" -o -name "application*.properties"
+```
+
+#### Phase 2: Vulnerability Assessment
+```yaml
+# Security Assessment Checklist
+authentication:
+  - multi_factor_authentication: false
+  - password_policy_enforcement: true
+  - session_timeout_configured: true
+  - account_lockout_policy: false
+
+authorization:
+  - role_based_access_control: true
+  - method_level_security: false
+  - resource_level_authorization: true
+  - privilege_escalation_prevention: true
+
+data_protection:
+  - encryption_at_rest: false
+  - encryption_in_transit: true
+  - sensitive_data_masking: false
+  - key_management_system: false
+
+input_validation:
+  - parameter_validation: true
+  - sql_injection_prevention: true
+  - xss_protection: true
+  - csrf_protection: true
+```
+
+#### Phase 3: Risk Scoring
+```java
+@Component
+public class SecurityRiskCalculator {
+    
+    public enum RiskLevel {
+        CRITICAL(10), HIGH(7), MEDIUM(4), LOW(1);
+        private final int weight;
+        RiskLevel(int weight) { this.weight = weight; }
+        public int getWeight() { return weight; }
+    }
+    
+    public class SecurityRisk {
+        private String category;
+        private RiskLevel severity;
+        private double probability;
+        private double impact;
+        
+        public double calculateRiskScore() {
+            return severity.getWeight() * probability * impact;
+        }
+    }
+    
+    public double calculateOverallRisk(List<SecurityRisk> risks) {
+        return risks.stream()
+                .mapToDouble(SecurityRisk::calculateRiskScore)
+                .sum() / risks.size();
+    }
+}
+```
+
+### 4. Continuous Monitoring Framework
+
+#### Real-time Security Metrics
+```java
+@Component
+public class SecurityMetricsCollector {
+    
+    private final MeterRegistry meterRegistry;
+    
+    @EventListener
+    public void handleAuthenticationFailure(AuthenticationFailureBadCredentialsEvent event) {
+        Counter.builder("security.authentication.failures")
+            .tag("username", event.getAuthentication().getName())
+            .register(meterRegistry)
+            .increment();
+    }
+    
+    @EventListener
+    public void handleAuthorizationFailure(AuthorizationDeniedEvent event) {
+        Counter.builder("security.authorization.denials")
+            .tag("resource", event.getSource().toString())
+            .register(meterRegistry)
+            .increment();
+    }
+    
+    @Scheduled(fixedRate = 60000) // Every minute
+    public void collectSecurityMetrics() {
+        // Collect active sessions
+        Gauge.builder("security.active.sessions")
+            .register(meterRegistry, this, SecurityMetricsCollector::getActiveSessions);
+            
+        // Collect failed login attempts
+        Timer.builder("security.vulnerability.scan.duration")
+            .register(meterRegistry);
+    }
+    
+    private double getActiveSessions(SecurityMetricsCollector collector) {
+        // Implementation to get active session count
+        return sessionRegistry.getAllSessions(false).size();
+    }
+}
+```
+
+### 5. Compliance Mapping
+
+#### SOC 2 Type II Controls
+| Control | Spring Boot Implementation | Assessment Criteria |
+|---------|---------------------------|-------------------|
+| CC6.1 | Spring Security Configuration | Authentication mechanisms properly configured |
+| CC6.2 | Method-level Security | Authorization controls at service layer |
+| CC6.3 | Data Encryption | TLS/SSL for data in transit |
+| CC6.7 | Vulnerability Management | Automated dependency scanning |
+| CC6.8 | Data Retention | Audit log configuration |
+
+#### ISO 27001 Controls
+| Control | Implementation | Maturity Level |
+|---------|---------------|----------------|
+| A.9.1.2 | Access Control Policy | Level 3 |
+| A.10.1.1 | Cryptographic Policy | Level 2 |
+| A.12.2.1 | Malware Protection | Level 4 |
+| A.14.2.5 | Secure Development | Level 3 |
+
+### 6. Security Testing Framework
+
+#### Unit Testing Security
+```java
+@ExtendWith(SpringExtension.class)
+@WebMvcTest(UserController.class)
+class SecurityUnitTest {
+    
+    @MockBean
+    private UserService userService;
+    
+    @Test
+    @WithMockUser(roles = "USER")
+    void testUserAccessAllowed() throws Exception {
+        mockMvc.perform(get("/api/user/profile"))
+            .andExpect(status().isOk());
+    }
+    
+    @Test
+    @WithMockUser(roles = "GUEST")
+    void testUnauthorizedAccess() throws Exception {
+        mockMvc.perform(get("/api/admin/users"))
+            .andExpect(status().isForbidden());
+    }
+    
+    @Test
+    void testSqlInjectionPrevention() throws Exception {
+        String maliciousInput = "'; DROP TABLE users; --";
+        mockMvc.perform(post("/api/user/search")
+                .param("query", maliciousInput))
+            .andExpect(status().isBadRequest());
+    }
+}
+```
+
+#### Integration Testing Security
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestPropertySource(locations = "classpath:application-test.properties")
+class SecurityIntegrationTest {
+    
+    @Autowired
+    private TestRestTemplate restTemplate;
+    
+    @Test
+    void testSecurityHeaders() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/", String.class);
+        
+        assertThat(response.getHeaders().get("X-Frame-Options")).contains("DENY");
+        assertThat(response.getHeaders().get("X-Content-Type-Options")).contains("nosniff");
+        assertThat(response.getHeaders().get("X-XSS-Protection")).contains("1; mode=block");
+    }
+    
+    @Test
+    void testCSRFProtection() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        
+        HttpEntity<String> request = new HttpEntity<>("{\"test\":\"data\"}", headers);
+        ResponseEntity<String> response = restTemplate.postForEntity("/api/data", request, String.class);
+        
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+}
+```
+
+### Phase 1: Foundation (Weeks 1-4)
+1. **Tool Selection and Setup**
+   - Choose primary SAST/SCA tools
+   - Set up CI/CD integration
+   - Configure vulnerability thresholds
+
+2. **Team Training**
+   - Secure coding practices workshop
+   - Tool usage training
+   - Threat modeling sessions
+
+### Phase 2: Integration (Weeks 5-8)
+1. **Pipeline Integration**
+   - Implement security gates
+   - Configure automated scanning
+   - Set up notification systems
+
+2. **Policy Definition**
+   - Vulnerability SLA establishment
+   - Remediation workflows
+   - Exception handling processes
+
+### Phase 3: Optimization (Weeks 9-12)
+1. **Monitoring Enhancement**
+   - Real-time dashboards
+   - Metrics collection
+   - Performance optimization
+
+2. **Continuous Improvement**
+   - Regular tool updates
+   - Process refinement
+   - Feedback incorporation
+
+### Phase 4: Advanced Security (Weeks 13-16)
+1. **Advanced Techniques**
+   - Runtime application self-protection (RASP)
+   - Behavioral analysis
+   - Machine learning integration
+
+2. **Compliance Validation**
+   - Audit preparation
+   - Documentation updates
+   - Third-party assessments
+
+## Budget Considerations
+
+### Tool Costs (Annual)
+- **SAST Tools**: $5,000 - $50,000
+- **SCA Tools**: $3,000 - $30,000
+- **DAST Tools**: $10,000 - $100,000
+- **Training**: $2,000 - $10,000
+
+### ROI Calculation
+- **Cost of Data Breach**: $4.45M average (IBM Security Report 2023)
+- **Left-shift Security ROI**: 600% over 3 years
+- **Compliance Cost Avoidance**: $500K - $2M annually
+
+---
+
+*Last Updated: May 2025*
+*Document Version: 1.0*
