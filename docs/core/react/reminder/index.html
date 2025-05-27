@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Debt Consolidation Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 10px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: clamp(1.5rem, 5vw, 2rem);
+        }
+        h2 {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+        }
+        .debt-form {
+            margin-bottom: 20px;
+        }
+        .debt-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .debt-inputs input, 
+        .debt-inputs button {
+            flex: 1 1 auto;
+            min-width: 120px;
+        }
+        @media (max-width: 600px) {
+            .debt-inputs {
+                flex-direction: column;
+            }
+            .debt-inputs input, 
+            .debt-inputs button {
+                width: 100%;
+            }
+        }
+        .debt-list {
+            margin-top: 20px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 300px;
+        }
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        @media (max-width: 500px) {
+            th, td {
+                padding: 6px 8px;
+                font-size: 0.9rem;
+            }
+        }
+        .button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+            font-size: 0.85rem;
+        }
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+        input, select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .result {
+            background-color: #eafaf1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 5px solid #2ecc71;
+        }
+        .result h2 {
+            color: #27ae60;
+            margin-top: 0;
+        }
+        .share-section {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .share-link {
+            word-break: break-all;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Debt Consolidation Calculator</h1>
+        
+        <div class="debt-form">
+            <h2>Add Your Debts</h2>
+            <div class="debt-inputs">
+                <input type="text" id="debtName" placeholder="Debt name (e.g. Credit Card)" required>
+                <input type="number" id="debtAmount" placeholder="Amount ($)" min="0" step="0.01" required>
+                <input type="number" id="interestRate" placeholder="Interest rate (%)" min="0" step="0.01" required>
+                <button class="button" onclick="addDebt()">Add Debt</button>
+            </div>
+            <div id="inputError" class="error"></div>
+        </div>
+
+        <div class="debt-list">
+            <h2>Your Debts</h2>
+            <table id="debtTable">
+                <thead>
+                    <tr>
+                        <th>Debt Name</th>
+                        <th>Amount ($)</th>
+                        <th>Interest Rate (%)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="debtTableBody">
+                    <!-- Debts will be added here -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td><strong>Total</strong></td>
+                        <td id="totalAmount"><strong>$0.00</strong></td>
+                        <td id="avgInterestRate"><strong>0.00%</strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div>
+            <h2>Consolidation Options</h2>
+            <div class="debt-inputs">
+                <input type="number" id="consolidationRate" placeholder="Consolidation rate (%)" min="0" step="0.01" value="7.99">
+                <input type="number" id="loanTerm" placeholder="Loan term (years)" min="1" max="30" step="1" value="5">
+                <button class="button" onclick="calculateConsolidation()">Calculate</button>
+            </div>
+        </div>
+
+        <div id="result" class="result" style="display: none;">
+            <h2>Consolidation Summary</h2>
+            <div id="consolidationDetails"></div>
+        </div>
+
+        <div class="share-section">
+            <h2>Share This Calculation</h2>
+            <p>Copy the link below to share your debt consolidation scenario:</p>
+            <div id="shareLink" class="share-link">
+                Your share link will appear here after adding debts
+            </div>
+            <button class="button" onclick="copyShareLink()" style="margin-top: 10px;">Copy Link</button>
+        </div>
+    </div>
+
+    <script>
+        let debts = [];
+        
+        // Check for URL parameters on load
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedData = urlParams.get('data');
+            
+            if (encodedData) {
+                try {
+                    const decodedData = JSON.parse(atob(encodedData));
+                    if (decodedData && decodedData.debts) {
+                        debts = decodedData.debts;
+                        updateTable();
+                        
+                        if (decodedData.consolidationRate && decodedData.loanTerm) {
+                            document.getElementById('consolidationRate').value = decodedData.consolidationRate;
+                            document.getElementById('loanTerm').value = decodedData.loanTerm;
+                            calculateConsolidation();
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error parsing shared data:", e);
+                }
+            }
+        };
+
+        function addDebt() {
+            const nameInput = document.getElementById('debtName');
+            const amountInput = document.getElementById('debtAmount');
+            const rateInput = document.getElementById('interestRate');
+            const errorDiv = document.getElementById('inputError');
+            
+            const name = nameInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            const rate = parseFloat(rateInput.value);
+            
+            // Validation
+            if (!name || isNaN(amount) || isNaN(rate)) {
+                errorDiv.textContent = "Please fill in all fields with valid values";
+                return;
+            }
+            
+            if (amount <= 0) {
+                errorDiv.textContent = "Amount must be greater than 0";
+                return;
+            }
+            
+            if (rate < 0) {
+                errorDiv.textContent = "Interest rate cannot be negative";
+                return;
+            }
+            
+            errorDiv.textContent = "";
+            
+            // Add debt to array
+            debts.push({
+                name: name,
+                amount: amount,
+                rate: rate
+            });
+            
+            // Clear inputs
+            nameInput.value = "";
+            amountInput.value = "";
+            rateInput.value = "";
+            
+            updateTable();
+            updateShareLink();
+        }
+        
+        function deleteDebt(index) {
+            debts.splice(index, 1);
+            updateTable();
+            updateShareLink();
+        }
+        
+        function updateTable() {
+            const tableBody = document.getElementById('debtTableBody');
+            const totalAmountCell = document.getElementById('totalAmount');
+            const avgRateCell = document.getElementById('avgInterestRate');
+            
+            // Clear table
+            tableBody.innerHTML = "";
+            
+            let totalAmount = 0;
+            let weightedRateSum = 0;
+            
+            // Check if we have any debts
+            if (debts.length === 0) {
+                const emptyRow = document.createElement('tr');
+                const emptyCell = document.createElement('td');
+                emptyCell.textContent = "No debts added yet";
+                emptyCell.colSpan = 4;
+                emptyCell.style.textAlign = "center";
+                emptyCell.style.padding = "20px 0";
+                emptyRow.appendChild(emptyCell);
+                tableBody.appendChild(emptyRow);
+            } else {
+                // Add each debt to table
+                debts.forEach((debt, index) => {
+                    const row = document.createElement('tr');
+                    
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = debt.name;
+                    row.appendChild(nameCell);
+                    
+                    const amountCell = document.createElement('td');
+                    amountCell.textContent = `$${debt.amount.toFixed(2)}`;
+                    row.appendChild(amountCell);
+                    
+                    const rateCell = document.createElement('td');
+                    rateCell.textContent = `${debt.rate.toFixed(2)}%`;
+                    row.appendChild(rateCell);
+                    
+                    const actionCell = document.createElement('td');
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = "Delete";
+                    deleteBtn.className = "delete-btn";
+                    deleteBtn.onclick = () => deleteDebt(index);
+                    actionCell.appendChild(deleteBtn);
+                    row.appendChild(actionCell);
+                    
+                    tableBody.appendChild(row);
+                    
+                    totalAmount += debt.amount;
+                    weightedRateSum += debt.amount * debt.rate;
+                });
+            }
+            
+            // Update totals
+            totalAmountCell.innerHTML = `<strong>$${totalAmount.toFixed(2)}</strong>`;
+            
+            const weightedAvgRate = totalAmount > 0 ? (weightedRateSum / totalAmount) : 0;
+            avgRateCell.innerHTML = `<strong>${weightedAvgRate.toFixed(2)}%</strong>`;
+        }
+        
+        function calculateConsolidation() {
+            const totalAmount = debts.reduce((sum, debt) => sum + debt.amount, 0);
+            
+            if (totalAmount <= 0) {
+                alert("Please add at least one debt first");
+                return;
+            }
+            
+            const consolidationRate = parseFloat(document.getElementById('consolidationRate').value);
+            const loanTerm = parseInt(document.getElementById('loanTerm').value);
+            
+            if (isNaN(consolidationRate) || isNaN(loanTerm) || consolidationRate < 0 || loanTerm < 1) {
+                alert("Please enter valid consolidation rate and loan term");
+                return;
+            }
+            
+            // Calculate weighted average current rate
+            const weightedRateSum = debts.reduce((sum, debt) => sum + (debt.amount * debt.rate), 0);
+            const weightedAvgRate = weightedRateSum / totalAmount;
+            
+            // Calculate monthly payment for consolidated loan
+            const monthlyRate = consolidationRate / 100 / 12;
+            const totalMonths = loanTerm * 12;
+            const monthlyPayment = totalAmount * monthlyRate * Math.pow(1 + monthlyRate, totalMonths) / 
+                                  (Math.pow(1 + monthlyRate, totalMonths) - 1);
+            
+            // Calculate total interest paid
+            const totalPaid = monthlyPayment * totalMonths;
+            const totalInterest = totalPaid - totalAmount;
+            
+            // Calculate potential savings
+            const currentMonthlyInterest = totalAmount * (weightedAvgRate / 100) / 12;
+            const potentialMonthlySavings = currentMonthlyInterest - (totalInterest / totalMonths);
+            
+            // Display result
+            const resultDiv = document.getElementById('result');
+            const detailsDiv = document.getElementById('consolidationDetails');
+            
+            let resultHTML = `
+                <div style="overflow-x: auto;">
+                <table style="width: 100%; margin-bottom: 15px;">
+                    <tr>
+                        <td><strong>Total debt amount:</strong></td>
+                        <td>$${totalAmount.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current weighted average rate:</strong></td>
+                        <td>${weightedAvgRate.toFixed(2)}%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Consolidated loan rate:</strong></td>
+                        <td>${consolidationRate.toFixed(2)}%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loan term:</strong></td>
+                        <td>${loanTerm} years</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Monthly payment:</strong></td>
+                        <td>$${monthlyPayment.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total payment over ${loanTerm} years:</strong></td>
+                        <td>$${totalPaid.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total interest paid:</strong></td>
+                        <td>$${totalInterest.toFixed(2)}</td>
+                    </tr>
+                </table>
+                </div>
+            `;
+            
+            if (consolidationRate < weightedAvgRate) {
+                const interestSavings = (weightedAvgRate - consolidationRate) * totalAmount / 100 * loanTerm;
+                resultHTML += `
+                    <p style="color: #27ae60;"><strong>Potential interest savings:</strong> $${interestSavings.toFixed(2)} over the life of the loan</p>
+                    <p>By consolidating, you could save approximately $${potentialMonthlySavings.toFixed(2)} in interest per month.</p>
+                `;
+            } else {
+                resultHTML += `
+                    <p style="color: #e74c3c;"><strong>Note:</strong> Your consolidation rate is higher than your current weighted average rate.
+                    This consolidation might not save you money in interest, but could still simplify your payments.</p>
+                `;
+            }
+            
+            detailsDiv.innerHTML = resultHTML;
+            resultDiv.style.display = "block";
+            
+            updateShareLink(consolidationRate, loanTerm);
+        }
+        
+        function updateShareLink(consolidationRate, loanTerm) {
+            if (debts.length === 0) {
+                document.getElementById('shareLink').textContent = "Add some debts first to generate a share link";
+                return;
+            }
+            
+            // Create data object
+            const dataToShare = {
+                debts: debts
+            };
+            
+            // Add consolidation options if available
+            if (consolidationRate !== undefined && loanTerm !== undefined) {
+                dataToShare.consolidationRate = consolidationRate;
+                dataToShare.loanTerm = loanTerm;
+            }
+            
+            // Encode data
+            const encodedData = btoa(JSON.stringify(dataToShare));
+            
+            // Generate URL
+            const shareUrl = `${window.location.origin}${window.location.pathname}?data=${encodedData}`;
+            
+            // Update share link
+            document.getElementById('shareLink').textContent = shareUrl;
+        }
+        
+        function copyShareLink() {
+            const shareLinkText = document.getElementById('shareLink').textContent;
+            
+            if (shareLinkText.includes("Add some debts first")) {
+                alert("Please add some debts first");
+                return;
+            }
+            
+            navigator.clipboard.writeText(shareLinkText)
+                .then(() => {
+                    alert("Share link copied to clipboard!");
+                })
+                .catch(err => {
+                    console.error('Failed to copy: ', err);
+                    alert("Failed to copy link. Please select and copy it manually.");
+                });
+        }
+    </script>
+</body>
+</html>
