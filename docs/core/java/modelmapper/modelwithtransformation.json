@@ -1,0 +1,25 @@
+{
+  "name": "orderDtoToEntity",
+  "fields": {
+    "id": "orderId",
+    "orderNumber": {
+      "field": "reference",
+      "transform": "toUpperCase"
+    },
+    "totalAmount": "amount",
+    "customer.id": "customerId",
+    "customer.fullName": {
+      "field": "customerName",
+      "transform": "toLowerCase"
+    },
+    "items": {
+      "field": "orderItems",
+      "nested": "orderItemDtoToEntity"
+    },
+    "status": {
+      "field": "statusCode",
+      "transform": "stringToInteger"
+    },
+    "createdAt": "creationTimestamp"
+  }
+}
