@@ -1,0 +1,118 @@
+# pom.xml dependencies (add to your existing pom.xml)
+<dependencies>
+    <!-- Spring Boot Starters -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    
+    <!-- Google Cloud Storage -->
+    <dependency>
+        <groupId>com.google.cloud</groupId>
+        <artifactId>google-cloud-storage</artifactId>
+        <version>2.22.2</version>
+    </dependency>
+    
+    <!-- AWS S3 -->
+    <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-s3</artifactId>
+        <version>1.12.470</version>
+    </dependency>
+    
+    <!-- Azure Blob Storage -->
+    <dependency>
+        <groupId>com.azure</groupId>
+        <artifactId>azure-storage-blob</artifactId>
+        <version>12.21.1</version>
+    </dependency>
+    
+    <!-- Apache Commons IO -->
+    <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.11.0</version>
+    </dependency>
+    
+    <!-- Configuration Properties -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-configuration-processor</artifactId>
+        <optional>true</optional>
+    </dependency>
+</dependencies>
+
+---
+
+# application.yml - Example configurations for different storage types
+
+# Local File Storage Configuration
+file:
+  storage:
+    type: local
+    local:
+      base-path: ./files
+
+---
+
+# Google Cloud Storage Configuration
+file:
+  storage:
+    type: gcp
+    gcp:
+      bucket-name: your-gcp-bucket
+      project-id: your-project-id
+      credentials-path: /path/to/service-account-key.json
+
+---
+
+# AWS S3 Configuration
+file:
+  storage:
+    type: aws
+    aws:
+      bucket-name: your-s3-bucket
+      region: us-east-1
+
+# AWS credentials should be configured via:
+# 1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+# 2. AWS credentials file
+# 3. IAM roles (for EC2 instances)
+
+---
+
+# Azure Blob Storage Configuration
+file:
+  storage:
+    type: azure
+    azure:
+      container-name: your-container
+      connection-string: DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net
+
+---
+
+# application-dev.yml (Development with local storage)
+file:
+  storage:
+    type: local
+    local:
+      base-path: ./dev-files
+
+logging:
+  level:
+    com.yourpackage.GenericFileService: DEBUG
+
+---
+
+# application-prod.yml (Production with cloud storage)
+file:
+  storage:
+    type: gcp  # or aws, azure
+    gcp:
+      bucket-name: ${GCP_BUCKET_NAME}
+      project-id: ${GCP_PROJECT_ID}
+      credentials-path: ${GCP_CREDENTIALS_PATH}
+
+logging:
+  level:
+    com.yourpackage.GenericFileService: INFO
