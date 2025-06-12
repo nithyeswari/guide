@@ -12,6 +12,376 @@ This framework assesses your organization's shift left security maturity across 
 
 ---
 
+## Performance Testing After Security Fixes
+
+### Why Performance Testing is Critical for Security Fixes
+
+Security fixes often introduce performance overhead through:
+- **Input validation** - Additional parsing and validation logic
+- **Cryptographic operations** - Encryption/decryption processing time
+- **Authentication changes** - Additional authentication checks
+- **Query modifications** - Parameterized queries vs. dynamic SQL
+- **Logging enhancements** - Additional security logging overhead
+
+### Performance Testing by Level
+
+**Level 1: Basic Performance Validation**
+- **Testing Tools:**
+  ```bash
+  # Simple curl-based response time testing
+  curl -w "@curl-format.txt" -s -o /dev/null https://api.company.com/endpoint
+  
+  # curl-format.txt contains:
+  # time_namelookup:  %{time_namelookup}\n
+  # time_connect:     %{time_connect}\n
+  # time_appconnect:  %{time_appconnect}\n
+  # time_pretransfer: %{time_pretransfer}\n
+  # time_starttransfer: %{time_starttransfer}\n
+  # time_total:       %{time_total}\n
+  ```
+- **Test Scope:** Basic endpoint response times before/after security fix
+- **Acceptance Criteria:** No more than 20% degradation in response times
+- **Automation:** Manual testing after security fixes
+
+**Level 2: Comprehensive Performance Testing**
+- **Testing Tools:**
+  ```bash
+  # Apache Bench (ab) for load testing
+  ab -n 1000 -c 10 https://api.company.com/secure-endpoint
+  
+  # JMeter script for complex scenarios
+  jmeter -n -t security_performance_test.jmx -l results.jtl
+  
+  # Artillery.js for modern API testing
+  artillery run security-load-test.yml
+  ```
+- **Test Configuration:**
+  ```yaml
+  # artillery-security-test.yml
+  config:
+    target: 'https://api.company.com'
+    phases:
+      - duration: 60
+        arrivalRate: 10
+        name: "Baseline load"
+      - duration: 120
+        arrivalRate: 50
+        name: "Security fix validation"
+  scenarios:
+    - name: "Authentication flow"
+      flow:
+        - post:
+            url: "/auth/login"
+            json:
+              username: "testuser"
+              password: "testpass"
+        - get:
+            url: "/secure/data"
+            headers:
+              Authorization: "Bearer {{ token }}"
+  ```
+- **Test Scope:** Authentication, authorization, data processing endpoints
+- **Acceptance Criteria:** 
+  - P95 response time < 2 seconds
+  - No more than 15% degradation
+  - Error rate < 1%
+- **Automation:** Integrated into CI/CD pipeline
+
+**Level 3: Advanced Performance Validation**
+- **Testing Tools:**
+  ```python
+  # Custom Python performance testing
+  import asyncio, aiohttp, time, statistics
+  
+  async def performance_test_suite():
+      """Comprehensive async performance testing"""
+      
+      # Test scenarios with security fixes
+      scenarios = [
+          {'name': 'Auth validation', 'endpoint': '/auth/validate', 'payload': auth_data},
+          {'name': 'Secure data access', 'endpoint': '/secure/data', 'headers': auth_headers},
+          {'name': 'Input validation', 'endpoint': '/process', 'payload': test_data}
+      ]
+      
+      results = {}
+      
+      for scenario in scenarios:
+          print(f"Testing {scenario['name']}...")
+          
+          # Baseline test (single requests)
+          baseline_times = await run_baseline_test(scenario)
+          
+          # Load test (concurrent requests)
+          load_times = await run_load_test(scenario, concurrent=50, duration=120)
+          
+          # Stress test (high load)
+          stress_times = await run_stress_test(scenario, concurrent=200, duration=60)
+          
+          results[scenario['name']] = {
+              'baseline': {
+                  'avg': statistics.mean(baseline_times),
+                  'p95': percentile(baseline_times, 95),
+                  'p99': percentile(baseline_times, 99)
+              },
+              'load': {
+                  'avg': statistics.mean(load_times),
+                  'p95': percentile(load_times, 95),
+                  'throughput': len(load_times) / 120
+              },
+              'stress': {
+                  'avg': statistics.mean(stress_times),
+                  'error_rate': calculate_error_rate(stress_times)
+              }
+          }
+      
+      return results
+  ```
+- **Test Scope:** Complete application performance profile
+- **Acceptance Criteria:**
+  - P99 response time < 5 seconds
+  - Throughput degradation < 10%
+  - Error rate < 0.5% under normal load
+  - Error rate < 5% under stress
+- **Automation:** AI-powered performance analysis and prediction
+
+### Security-Specific Performance Tests
+
+**Authentication & Authorization Performance**
+```bash
+# Test authentication endpoint performance
+echo "Testing auth performance..."
+for i in {1..100}; do
+  curl -w "%{time_total}\n" -s -o /dev/null \
+    -X POST -H "Content-Type: application/json" \
+    -d '{"username":"test","password":"test"}' \
+    https://api.company.com/auth/login
+done | awk '{sum+=$1; count++} END {print "Avg auth time:", sum/count, "seconds"}'
+
+# Test token validation performance
+echo "Testing token validation..."
+TOKEN="your-jwt-token"
+for i in {1..100}; do
+  curl -w "%{time_total}\n" -s -o /dev/null \
+    -H "Authorization: Bearer $TOKEN" \
+    https://api.company.com/secure/endpoint
+done | awk '{sum+=$1; count++} END {print "Avg validation time:", sum/count, "seconds"}'
+```
+
+**Input Validation Performance**
+```python
+# Test input validation overhead
+import requests, time, random, string
+
+def generate_test_payload(size=1000):
+    """Generate test payload of specified size"""
+    return {
+        'data': ''.join(random.choices(string.ascii_letters, k=size)),
+        'numbers': [random.randint(1, 1000) for _ in range(100)],
+        'nested': {'key': 'value' * 100}
+    }
+
+def test_validation_performance():
+    """Test performance impact of input validation"""
+    endpoint = "https://api.company.com/process"
+    
+    # Test different payload sizes
+    sizes = [100, 1000, 10000, 100000]
+    results = {}
+    
+    for size in sizes:
+        times = []
+        payload = generate_test_payload(size)
+        
+        for _ in range(50):
+            start = time.time()
+            response = requests.post(endpoint, json=payload)
+            end = time.time()
+            
+            if response.status_code == 200:
+                times.append(end - start)
+        
+        if times:
+            results[size] = {
+                'avg_time': sum(times) / len(times),
+                'max_time': max(times),
+                'requests_per_second': len(times) / sum(times)
+            }
+    
+    return results
+```
+
+**Database Query Performance**
+```sql
+-- Test parameterized query performance vs. dynamic SQL
+-- Before security fix (vulnerable but fast)
+EXPLAIN ANALYZE SELECT * FROM users WHERE id = 123;
+
+-- After security fix (secure but potentially slower)
+EXPLAIN ANALYZE SELECT * FROM users WHERE id = $1;
+
+-- Monitor query performance
+SELECT 
+    query,
+    calls,
+    total_time,
+    mean_time,
+    stddev_time
+FROM pg_stat_statements 
+WHERE query LIKE '%users%'
+ORDER BY mean_time DESC;
+```
+
+### Performance Monitoring and Alerting
+
+**Application Performance Monitoring (APM) Integration**
+```yaml
+# Example: New Relic alert for security fix performance impact
+alert_policy:
+  name: "Security Fix Performance Impact"
+  conditions:
+    - name: "Response Time Degradation"
+      type: "apm_app_metric"
+      metric: "response_time_web"
+      condition_scope: "application"
+      threshold:
+        duration: 300
+        operator: "above"
+        value: 2.0  # 2 seconds
+    
+    - name: "Throughput Drop"
+      type: "apm_app_metric" 
+      metric: "throughput_web"
+      condition_scope: "application"
+      threshold:
+        duration: 300
+        operator: "below"
+        percentage_change: 15  # 15% decrease
+```
+
+**Custom Performance Metrics**
+```python
+# Example: Custom metrics collection for security endpoints
+from prometheus_client import Counter, Histogram, start_http_server
+import time
+
+# Define metrics
+security_endpoint_requests = Counter('security_endpoint_requests_total', 
+                                   'Total security endpoint requests', 
+                                   ['endpoint', 'method', 'status'])
+
+security_endpoint_duration = Histogram('security_endpoint_duration_seconds',
+                                     'Security endpoint response time',
+                                     ['endpoint', 'method'])
+
+def monitor_security_endpoint(func):
+    """Decorator to monitor security endpoint performance"""
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        endpoint = kwargs.get('endpoint', 'unknown')
+        method = kwargs.get('method', 'GET')
+        
+        try:
+            result = func(*args, **kwargs)
+            status = 'success'
+            return result
+        except Exception as e:
+            status = 'error'
+            raise
+        finally:
+            duration = time.time() - start_time
+            security_endpoint_requests.labels(endpoint=endpoint, method=method, status=status).inc()
+            security_endpoint_duration.labels(endpoint=endpoint, method=method).observe(duration)
+    
+    return wrapper
+```
+
+### Performance Regression Prevention
+
+**Automated Performance Gates**
+```yaml
+# GitHub Actions performance gate
+- name: Performance Regression Test
+  run: |
+    # Run performance tests
+    python performance_tests.py --baseline baseline_results.json --current current_results.json
+    
+    # Check for regressions
+    REGRESSION_CHECK=$(python check_regression.py)
+    
+    if [ "$REGRESSION_CHECK" = "FAILED" ]; then
+      echo "Performance regression detected!"
+      echo "Current performance is below acceptable thresholds"
+      exit 1
+    fi
+    
+    echo "Performance validation passed"
+```
+
+**Performance Budget Definition**
+```json
+{
+  "performance_budget": {
+    "response_time": {
+      "auth_endpoints": {
+        "p95": "1.5s",
+        "p99": "3.0s"
+      },
+      "data_endpoints": {
+        "p95": "2.0s", 
+        "p99": "5.0s"
+      }
+    },
+    "throughput": {
+      "degradation_threshold": "15%",
+      "minimum_rps": 100
+    },
+    "error_rates": {
+      "normal_load": "1%",
+      "stress_load": "5%"
+    }
+  }
+}
+```
+
+### Performance Testing Checklist for Security Fixes
+
+**Pre-Fix Baseline (Always Required)**
+- [ ] Capture baseline performance metrics for affected endpoints
+- [ ] Document current response times (P50, P95, P99)
+- [ ] Record current throughput and error rates
+- [ ] Identify performance-critical code paths
+
+**Post-Fix Validation (Level-Based)**
+
+**Level 1 Validation:**
+- [ ] Basic response time test (curl or similar)
+- [ ] Compare before/after metrics
+- [ ] Verify no more than 20% degradation
+- [ ] Manual verification on staging environment
+
+**Level 2 Validation:**
+- [ ] Load testing with realistic user scenarios
+- [ ] Authentication flow performance testing
+- [ ] Database query performance analysis
+- [ ] API endpoint load testing (10-50 concurrent users)
+- [ ] Automated performance regression detection
+
+**Level 3 Validation:**
+- [ ] Comprehensive performance test suite
+- [ ] Stress testing with high concurrent load
+- [ ] Memory and CPU usage analysis
+- [ ] Database connection pool impact assessment
+- [ ] Third-party service integration performance
+- [ ] AI-powered performance anomaly detection
+
+**Always Required (All Levels):**
+- [ ] Performance test results documented in PR
+- [ ] Performance team approval for significant changes
+- [ ] Monitoring alerts configured for new endpoints
+- [ ] Performance budget compliance verified
+
+---
+
 ## Dimension 1: Tool Implementation
 
 ### Static Application Security Testing (SAST)
@@ -202,6 +572,7 @@ This framework assesses your organization's shift left security maturity across 
 - **Knowledge:** Comprehensive remediation expertise
 - **Process:** Semi-automated remediation workflows
 - **Verification:** Comprehensive testing and validation
+- **Performance Impact:** Automated performance regression testing
 
 **Level 3: Advanced Resolution**
 - **Fix Confidence:** 98%+ confidence including complex issues
@@ -209,6 +580,7 @@ This framework assesses your organization's shift left security maturity across 
 - **Knowledge:** Expert-level remediation across all domains
 - **Process:** Automated remediation with custom solutions
 - **Verification:** Automated testing and continuous validation
+- **Performance Impact:** AI-powered performance analysis and optimization
 
 ---
 
@@ -300,10 +672,35 @@ This framework assesses your organization's shift left security maturity across 
           run: |
             # Check PR title and description for security keywords
             if echo "${{ github.event.pull_request.title }}" | grep -qi "security\|fix\|vulnerability\|CVE"; then
+              
+              # Basic performance test for security changes
+              echo "Running basic performance check..."
+              ENDPOINT="https://api.company.com/health"
+              
+              # Test endpoint 5 times and get average
+              TOTAL_TIME=0
+              for i in {1..5}; do
+                RESPONSE_TIME=$(curl -w "%{time_total}" -s -o /dev/null "$ENDPOINT")
+                TOTAL_TIME=$(echo "$TOTAL_TIME + $RESPONSE_TIME" | bc)
+              done
+              AVG_TIME=$(echo "scale=3; $TOTAL_TIME / 5" | bc)
+              
+              # Performance status
+              PERF_STATUS="✅ Good"
+              if [ $(echo "$AVG_TIME > 2.0" | bc -l) -eq 1 ]; then
+                PERF_STATUS="⚠️ Slow (${AVG_TIME}s)"
+              fi
+              
               # Send Teams notification for security PR
               curl -X POST -H 'Content-type: application/json' \
               --data '{
                 "text": "🔒 Security PR opened: ${{ github.event.pull_request.title }} by ${{ github.event.pull_request.user.login }}",
+                "sections": [{
+                  "facts": [
+                    {"name": "Performance Check", "value": "'"$PERF_STATUS"'"},
+                    {"name": "Response Time", "value": "'"$AVG_TIME"'s average"}
+                  ]
+                }],
                 "potentialAction": [{
                   "@type": "OpenUri",
                   "name": "Review PR",
@@ -355,6 +752,20 @@ This framework assesses your organization's shift left security maturity across 
               SECURITY_REVIEWERS="@security-team @security-champions"
             fi
             
+            # Run performance baseline test
+            PERFORMANCE_IMPACT="None"
+            if [ ! -z "$SECURITY_FILES" ]; then
+              # Quick performance test for security changes
+              echo "Running performance baseline..."
+              # Example: API endpoint performance test
+              BASELINE_TIME=$(curl -w "%{time_total}" -s -o /dev/null https://api.company.com/health)
+              if [ $(echo "$BASELINE_TIME > 2.0" | bc -l) ]; then
+                PERFORMANCE_IMPACT="⚠️ Potential impact detected (${BASELINE_TIME}s)"
+              else
+                PERFORMANCE_IMPACT="✅ No significant impact (${BASELINE_TIME}s)"
+              fi
+            fi
+            
             # Create comprehensive Teams message
             cat << EOF > teams_message.json
             {
@@ -372,6 +783,7 @@ This framework assesses your organization's shift left security maturity across 
                     {"name": "🚨 CVE References", "value": "${CVE_REFS:-None}"},
                     {"name": "⚠️ CWE References", "value": "${CWE_REFS:-None}"},
                     {"name": "🔍 Security Issues", "value": "$SECURITY_ISSUES found"},
+                    {"name": "⚡ Performance Impact", "value": "$PERFORMANCE_IMPACT"},
                     {"name": "👥 Required Reviewers", "value": "${SECURITY_REVIEWERS:-Standard review}"}
                   ]
                 }
@@ -500,6 +912,9 @@ This framework assesses your organization's shift left security maturity across 
                             {"name": "🔴 Critical Issues", "value": str(critical_issues)},
                             {"name": "🟡 High Issues", "value": str(high_issues)},
                             {"name": "📊 Risk Score", "value": f"{risk_score}/100"},
+                            {"name": "⚡ Performance Impact", "value": os.environ.get('PERF_IMPACT', 'Not tested')},
+                            {"name": "🐌 Degraded Endpoints", "value": os.environ.get('DEGRADED_COUNT', '0')},
+                            {"name": "🏃 Performance Review", "value": os.environ.get('PERFORMANCE_APPROVAL_REQUIRED', 'No')},
                             {"name": "✅ Security Team Review", "value": "Required" if approval_requirements['security_team'] else "Optional"},
                             {"name": "🏗️ Architecture Review", "value": "Required" if approval_requirements['security_architect'] else "Not Required"},
                             {"name": "👔 CISO Approval", "value": "Required" if approval_requirements['ciso_approval'] else "Not Required"},
@@ -536,7 +951,114 @@ This framework assesses your organization's shift left security maturity across 
             for channel in channels:
                 requests.post(channel, json=teams_message)
             
-            PYTHON_SCRIPT
+            # Comprehensive performance testing for security fixes
+            python3 << 'PERFORMANCE_SCRIPT'
+            import requests, time, json, statistics
+            import concurrent.futures
+            
+            def performance_test_endpoint(url, iterations=10):
+                """Test endpoint performance multiple times"""
+                times = []
+                for i in range(iterations):
+                    start = time.time()
+                    try:
+                        response = requests.get(url, timeout=10)
+                        end = time.time()
+                        if response.status_code == 200:
+                            times.append(end - start)
+                    except:
+                        times.append(10.0)  # Timeout value
+                return times
+            
+            def load_test_endpoint(url, concurrent_users=5, duration=30):
+                """Load test with concurrent users"""
+                start_time = time.time()
+                response_times = []
+                
+                def make_request():
+                    start = time.time()
+                    try:
+                        response = requests.get(url, timeout=5)
+                        end = time.time()
+                        return end - start if response.status_code == 200 else 5.0
+                    except:
+                        return 5.0
+                
+                with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent_users) as executor:
+                    while time.time() - start_time < duration:
+                        futures = [executor.submit(make_request) for _ in range(concurrent_users)]
+                        for future in concurrent.futures.as_completed(futures):
+                            response_times.append(future.result())
+                
+                return response_times
+            
+            # Performance test configuration
+            test_endpoints = [
+                'https://api.company.com/health',
+                'https://api.company.com/auth/validate',
+                'https://api.company.com/data/secure'
+            ]
+            
+            performance_results = {}
+            
+            for endpoint in test_endpoints:
+                print(f"Testing {endpoint}...")
+                
+                # Baseline performance test
+                baseline_times = performance_test_endpoint(endpoint)
+                
+                # Load test
+                load_times = load_test_endpoint(endpoint, concurrent_users=10, duration=30)
+                
+                if baseline_times and load_times:
+                    performance_results[endpoint] = {
+                        'avg_response_time': statistics.mean(baseline_times),
+                        'p95_response_time': sorted(baseline_times)[int(0.95 * len(baseline_times))],
+                        'load_avg_time': statistics.mean(load_times),
+                        'load_p95_time': sorted(load_times)[int(0.95 * len(load_times))]
+                    }
+            
+            # Analyze performance impact
+            performance_summary = {
+                'overall_impact': 'minimal',
+                'degraded_endpoints': [],
+                'recommendations': []
+            }
+            
+            for endpoint, metrics in performance_results.items():
+                # Flag endpoints with concerning performance
+                if metrics['avg_response_time'] > 2.0:
+                    performance_summary['degraded_endpoints'].append(endpoint)
+                    performance_summary['overall_impact'] = 'moderate'
+                
+                if metrics['p95_response_time'] > 5.0:
+                    performance_summary['overall_impact'] = 'significant'
+                    performance_summary['recommendations'].append(f"Optimize {endpoint} - P95: {metrics['p95_response_time']:.2f}s")
+            
+            # Save results for Teams notification
+            with open('performance_results.json', 'w') as f:
+                json.dump({
+                    'summary': performance_summary,
+                    'detailed_results': performance_results
+                }, f, indent=2)
+            
+            print(f"Performance impact: {performance_summary['overall_impact']}")
+            print(f"Degraded endpoints: {len(performance_summary['degraded_endpoints'])}")
+            
+            PERFORMANCE_SCRIPT
+            
+            # Load performance results
+            PERF_IMPACT=$(python3 -c "import json; data=json.load(open('performance_results.json')); print(data['summary']['overall_impact'])")
+            DEGRADED_COUNT=$(python3 -c "import json; data=json.load(open('performance_results.json')); print(len(data['summary']['degraded_endpoints']))")
+            
+            # Determine performance thresholds for approval
+            PERFORMANCE_APPROVAL_REQUIRED="No"
+            if [ "$PERF_IMPACT" = "significant" ]; then
+              PERFORMANCE_APPROVAL_REQUIRED="Yes - Performance team review required"
+              gh pr edit ${{ github.event.pull_request.number }} --add-reviewer performance-team
+            elif [ "$PERF_IMPACT" = "moderate" ]; then
+              PERFORMANCE_APPROVAL_REQUIRED="Yes - Performance validation needed"
+            fi
           env:
             PR_NUMBER: ${{ github.event.pull_request.number }}
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -712,6 +1234,12 @@ For each dimension, identify your current level:
 - [ ] Create simple notification workflows
 - [ ] Establish basic security meeting cadence
 
+#### Performance Testing
+- [ ] Implement basic response time testing (curl-based)
+- [ ] Create baseline performance measurements
+- [ ] Set up simple before/after performance comparison
+- [ ] Document performance impact of security fixes
+
 ### Level 2 Implementation Checklist
 
 #### Tools
@@ -745,6 +1273,12 @@ For each dimension, identify your current level:
 - [ ] Implement automated security reporting
 - [ ] Establish cross-team security coordination
 
+#### Performance Testing
+- [ ] Deploy Apache Bench/JMeter for load testing
+- [ ] Implement automated performance regression testing
+- [ ] Set up performance monitoring and alerting
+- [ ] Create performance budget definitions and gates
+
 ### Level 3 Implementation Checklist
 
 #### Tools
@@ -776,6 +1310,12 @@ For each dimension, identify your current level:
 - [ ] Create intelligent security communication systems
 - [ ] Establish industry-wide knowledge sharing
 - [ ] Develop custom communication and collaboration platforms
+
+#### Performance Testing
+- [ ] Deploy comprehensive async performance testing suites
+- [ ] Implement AI-powered performance analysis and prediction
+- [ ] Create self-optimizing performance validation
+- [ ] Establish predictive performance impact modeling
 
 ---
 
