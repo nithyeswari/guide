@@ -1,4 +1,4 @@
-# Spring Boot WebClient: 50 Best Practices
+# Spring Boot WebClient: Best Practices
 
 A comprehensive guide for optimal performance, memory management, and logging configuration in Spring Boot WebClient applications.
 
