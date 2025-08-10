@@ -1,4 +1,5 @@
 # Computer Vision in Finance
+
 A comprehensive guide to implementing computer vision solutions in financial services.
 
 ## Table of Contents

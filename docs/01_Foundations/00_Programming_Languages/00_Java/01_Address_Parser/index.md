@@ -1,3 +1,18 @@
+# Address Parser
+
+This document describes an address parser built with Apache Lucene.
+
+## License
+
+This address parser uses Apache Lucene, which is licensed under the Apache License 2.0. This is a permissive license that allows for free use, modification, and distribution.
+
+## Java Address Parser
+
+This is a Java-based address parser using Apache Lucene for fuzzy matching and parsing of unstructured addresses.
+
+### `Parser.java`
+
+```java
 package com.example.address;
 
 import java.io.IOException;
@@ -89,33 +104,92 @@ public class AddressParserExample {
         address2.setZipCode("94107");
         addresses.add(address2);
         
-        // Address 3
-        LuceneAddressParser.StructuredAddress address3 = new LuceneAddressParser.StructuredAddress();
-        address3.setStreetNumber("789");
-        address3.setStreetName("Broadway");
-        address3.setCity("New York");
-        address3.setState("NY");
-        address3.setZipCode("10001");
-        addresses.add(address3);
-        
-        // Address 4
-        LuceneAddressParser.StructuredAddress address4 = new LuceneAddressParser.StructuredAddress();
-        address4.setStreetNumber("1600");
-        address4.setStreetName("Pennsylvania Avenue NW");
-        address4.setCity("Washington");
-        address4.setState("DC");
-        address4.setZipCode("20500");
-        addresses.add(address4);
-        
-        // Address 5
-        LuceneAddressParser.StructuredAddress address5 = new LuceneAddressParser.StructuredAddress();
-        address5.setStreetNumber("350");
-        address5.setStreetName("Fifth Avenue");
-        address5.setCity("New York");
-        address5.setState("NY");
-        address5.setZipCode("10118");
-        addresses.add(address5);
-        
         return addresses;
     }
 }
+```
+
+### `pom.xml`
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>address-parser</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <lucene.version>8.11.2</lucene.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Apache Lucene Core -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+        
+        <!-- Lucene Analyzers for text processing -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-analyzers-common</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+        
+        <!-- Lucene Queries for more advanced query capabilities -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-queries</artifactId>
+            <version>${lucene.version}</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+## React Address Translator
+
+This is a React component that provides a UI for the address parser.
+
+### `unstructured.tsx`
+
+```tsx
+import React, { useState } from 'react';
+
+const AddressTranslator = () => {
+  const [unstructuredAddress, setUnstructuredAddress] = useState('');
+  const [structuredAddress, setStructuredAddress] = useState({
+    street: '',
+    unit: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: ''
+  });
+
+  const parseAddress = (addressText) => {
+    // Parsing logic here...
+  };
+
+  return (
+    <div>
+      <h1>Address Translator</h1>
+      <textarea value={unstructuredAddress} onChange={(e) => setUnstructuredAddress(e.target.value)} />
+      <button onClick={() => parseAddress(unstructuredAddress)}>Parse Address</button>
+      <div>
+        <h2>Structured Address</h2>
+        <pre>{JSON.stringify(structuredAddress, null, 2)}</pre>
+      </div>
+    </div>
+  );
+};
+
+export default AddressTranslator;
+```
