@@ -1,4 +1,9 @@
 # Java Development Guide
+> Modern Java development (8-21) with Spring Boot and enterprise patterns
+
+## 🚀 Quick Start
+
+**New to this guide?** Start with the [Java Backend Implementation Patterns](../../../../03_Backend_Development/00_Java_Backend_Patterns.md) for practical, production-ready code examples.
 
 ## Table of Contents
 
