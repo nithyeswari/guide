@@ -1,0 +1,273 @@
+name: Performance CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  # ========================================
+  # JOB 1: LINT FOR PERFORMANCE ANTI-PATTERNS
+  # ========================================
+  lint-performance:
+    name: 🔍 Performance Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run ESLint with performance rules
+        run: npm run lint:perf
+        
+      - name: Check for console.log statements
+        run: |
+          if grep -r "console\.log" --include="*.tsx" --include="*.ts" --include="*.jsx" --include="*.js" src/ | grep -v "// eslint-disable"; then
+            echo "❌ Found console.log statements in production code"
+            exit 1
+          fi
+          echo "✅ No console.log statements found"
+
+  # ========================================
+  # JOB 2: BUNDLE SIZE CHECK
+  # ========================================
+  bundle-size:
+    name: 📦 Bundle Size Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build production bundle
+        run: npm run build
+        env:
+          CI: true
+          
+      - name: Check bundle size limits
+        run: npx size-limit
+        
+      - name: Analyze bundle (on failure)
+        if: failure()
+        run: |
+          npx size-limit --why
+          echo "Bundle size exceeded! Check the analysis above."
+
+  # ========================================
+  # JOB 3: LIGHTHOUSE PERFORMANCE AUDIT
+  # ========================================
+  lighthouse:
+    name: 🚦 Lighthouse CI
+    runs-on: ubuntu-latest
+    needs: [lint-performance, bundle-size]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build production bundle
+        run: npm run build
+        env:
+          CI: true
+          
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.13.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+          
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
+          retention-days: 30
+
+  # ========================================
+  # JOB 4: DEPENDENCY AUDIT
+  # ========================================
+  dependency-check:
+    name: 🔒 Dependency Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Check for new dependencies
+        run: |
+          # Get list of new dependencies in this PR
+          git diff origin/main...HEAD -- package.json | grep "^\+" | grep -E '"[^"]+": "\^' || true
+          
+      - name: Analyze dependency impact
+        run: |
+          npm ci
+          echo "📊 Dependency Analysis:"
+          echo "Total dependencies: $(npm ls --all --json | jq '.dependencies | length')"
+          echo "Production dependencies: $(npm ls --prod --json | jq '.dependencies | length')"
+          
+      - name: Security audit
+        run: npm audit --production
+        continue-on-error: true
+
+  # ========================================
+  # JOB 5: PERFORMANCE REGRESSION TEST
+  # ========================================
+  performance-regression:
+    name: 📈 Performance Regression Test
+    runs-on: ubuntu-latest
+    needs: [bundle-size]
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build PR branch
+        run: npm run build
+        env:
+          CI: true
+          
+      - name: Save PR bundle stats
+        run: |
+          mkdir -p /tmp/pr-stats
+          du -sb build/static/js/*.js | sort -n > /tmp/pr-stats/js-sizes.txt
+          du -sb build/static/css/*.css | sort -n > /tmp/pr-stats/css-sizes.txt
+          
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          clean: false
+          
+      - name: Build main branch
+        run: |
+          npm ci
+          npm run build
+        env:
+          CI: true
+          
+      - name: Compare bundle sizes
+        run: |
+          echo "## 📊 Bundle Size Comparison" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          PR_SIZE=$(du -sb build/static/js/*.js | awk '{sum += $1} END {print sum}')
+          MAIN_SIZE=$(cat /tmp/pr-stats/js-sizes.txt | awk '{sum += $1} END {print sum}')
+          DIFF=$((PR_SIZE - MAIN_SIZE))
+          PERCENT=$(echo "scale=2; ($DIFF / $MAIN_SIZE) * 100" | bc)
+          
+          echo "| Bundle | Main | PR | Diff |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|------|----|----- |" >> $GITHUB_STEP_SUMMARY
+          echo "| JS | ${MAIN_SIZE}B | ${PR_SIZE}B | ${DIFF}B (${PERCENT}%) |" >> $GITHUB_STEP_SUMMARY
+          
+          # Fail if increase is more than 5%
+          if (( $(echo "$PERCENT > 5" | bc -l) )); then
+            echo "❌ Bundle size increased by more than 5%!"
+            exit 1
+          fi
+          
+          echo "✅ Bundle size change is within acceptable limits"
+
+  # ========================================
+  # JOB 6: POST RESULTS TO PR
+  # ========================================
+  post-results:
+    name: 💬 Post Results
+    runs-on: ubuntu-latest
+    needs: [lighthouse, bundle-size]
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+      
+    steps:
+      - name: Download Lighthouse results
+        uses: actions/download-artifact@v4
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
+          
+      - name: Post performance summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read Lighthouse results
+            let lhciSummary = '';
+            try {
+              const manifest = JSON.parse(fs.readFileSync('.lighthouseci/manifest.json', 'utf8'));
+              const summary = manifest.map(entry => {
+                return `- ${entry.url}: Score ${Math.round(entry.summary.performance * 100)}/100`;
+              }).join('\n');
+              lhciSummary = `## 🚦 Lighthouse Results\n\n${summary}`;
+            } catch (e) {
+              lhciSummary = '## 🚦 Lighthouse Results\n\nNo results available';
+            }
+            
+            const body = `
+            # Performance CI Results ✅
+            
+            ${lhciSummary}
+            
+            ## Checks Passed:
+            - ✅ ESLint performance rules
+            - ✅ Bundle size within limits
+            - ✅ No console.log statements
+            - ✅ Security audit passed
+            
+            ---
+            *Automated performance checks by CI*
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

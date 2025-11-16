@@ -1,0 +1,101 @@
+{
+  "name": "react-performance-toolkit",
+  "version": "1.0.0",
+  "description": "Performance enforcement configurations for React applications",
+  "scripts": {
+    "========== LINTING ==========": "",
+    "lint": "eslint src/ --ext .ts,.tsx,.js,.jsx",
+    "lint:perf": "eslint src/ --ext .ts,.tsx,.js,.jsx --config .eslintrc.performance.js --max-warnings 0",
+    "lint:fix": "eslint src/ --ext .ts,.tsx,.js,.jsx --fix",
+    
+    "========== BUNDLE ANALYSIS ==========": "",
+    "size": "size-limit",
+    "size:why": "size-limit --why",
+    "analyze": "source-map-explorer 'build/static/js/*.js' --html bundle-analysis.html",
+    "analyze:json": "source-map-explorer 'build/static/js/*.js' --json > bundle-stats.json",
+    
+    "========== LIGHTHOUSE ==========": "",
+    "lhci:healthcheck": "lhci healthcheck",
+    "lhci:collect": "lhci collect",
+    "lhci:assert": "lhci assert",
+    "lhci:autorun": "lhci autorun",
+    
+    "========== TESTING ==========": "",
+    "test:perf": "jest --config jest.perf.config.js",
+    "test:memory": "node --expose-gc scripts/memory-leak-test.js",
+    "test:render": "node scripts/render-count-test.js",
+    
+    "========== CI/CD ==========": "",
+    "ci:lint": "npm run lint:perf",
+    "ci:bundle": "npm run build && npm run size",
+    "ci:lighthouse": "npm run build && npm run lhci:autorun",
+    "ci:full": "npm run ci:lint && npm run ci:bundle && npm run ci:lighthouse",
+    
+    "========== LOCAL DEVELOPMENT ==========": "",
+    "perf:check": "npm run lint:perf && npm run size",
+    "perf:report": "npm run build && npm run analyze && npm run lhci:collect",
+    
+    "========== GIT HOOKS ==========": "",
+    "prepare": "husky install",
+    "precommit": "lint-staged",
+    
+    "========== MONITORING ==========": "",
+    "perf:budget": "node scripts/check-budget.js",
+    "perf:compare": "node scripts/compare-performance.js"
+  },
+  "devDependencies": {
+    "========== ESLINT PLUGINS ==========": "",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-perf": "^3.3.2",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    
+    "========== BUNDLE ANALYSIS ==========": "",
+    "size-limit": "^11.0.0",
+    "@size-limit/preset-app": "^11.0.0",
+    "@size-limit/webpack": "^11.0.0",
+    "source-map-explorer": "^2.5.3",
+    "webpack-bundle-analyzer": "^4.10.0",
+    
+    "========== LIGHTHOUSE ==========": "",
+    "@lhci/cli": "^0.13.0",
+    
+    "========== GIT HOOKS ==========": "",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    
+    "========== AUTOMATED REVIEW ==========": "",
+    "danger": "^12.0.0",
+    
+    "========== TESTING ==========": "",
+    "jest": "^29.7.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/jest-dom": "^6.0.0",
+    "puppeteer": "^22.0.0"
+  },
+  "size-limit": [
+    {
+      "name": "Main Bundle",
+      "path": "build/static/js/main.*.js",
+      "limit": "150 KB",
+      "gzip": true
+    },
+    {
+      "name": "Total Initial Load",
+      "path": "build/static/js/*.js",
+      "limit": "300 KB",
+      "gzip": true
+    }
+  ],
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --config .eslintrc.performance.js --fix --max-warnings 0"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  }
+}
