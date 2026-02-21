@@ -14,6 +14,7 @@
 - [Microservices System Design](#microservices-system-design)
 - [Spring Boot Integration](#spring-boot-integration)
 - [Log Management](#log-management)
+- [DQL for Banking — Payments, Beneficiary & Compliance](#dql-for-banking--payments-beneficiary--compliance)
 - [Advanced Patterns](#advanced-patterns)
 - [Anti-Patterns](#anti-patterns)
 - [Best Practices Checklist](#best-practices-checklist)
@@ -923,6 +924,593 @@ PurePath Trace: req-abc-123
   │   └── Span: Stripe API call (95ms)
   └── Span: Kafka produce (3ms)
       └── Log: "Published OrderCreated to topic orders"
+```
+
+---
+
+## DQL for Banking — Payments, Beneficiary & Compliance
+
+### DQL Reference Repositories
+
+| Repository | Description |
+|-----------|-------------|
+| [dynatrace-perfclinics/dql-by-usecase](https://github.com/dynatrace-perfclinics/dql-by-usecase) | Learning DQL by use case with video tutorials and playground notebooks |
+| [Dynatrace-Asad-Ali/DQL-Examples](https://github.com/Dynatrace-Asad-Ali/DQL-Examples) | DQL examples for parsing, filtering, and summarizing log data |
+| [dynatrace-oss/intellij-idea-dql](https://github.com/dynatrace-oss/intellij-idea-dql) | IntelliJ plugin for writing and executing DQL locally |
+| [DQL Language Reference](https://docs.dynatrace.com/docs/discover-dynatrace/platform/grail/dynatrace-query-language/dql-reference) | Official DQL documentation |
+| [DQL Use Cases](https://docs.dynatrace.com/docs/platform/grail/dynatrace-query-language/dql-use-cases) | Official use case library |
+| [Business Event Analysis](https://docs.dynatrace.com/docs/observe/business-observability/bo-analysis) | Business observability with DQL |
+
+### Payment Processing Monitoring
+
+#### Payment Transaction Overview
+
+```sql
+-- Payment transaction volume and success rate (last 24h)
+fetch bizevents
+| filter event.type == "payment.processed"
+| summarize
+    totalPayments = count(),
+    successCount = countIf(status == "SUCCESS"),
+    failedCount = countIf(status == "FAILED"),
+    pendingCount = countIf(status == "PENDING"),
+    totalAmount = sum(amount),
+    avgAmount = avg(amount),
+    by: {bin(timestamp, 1h)}
+| fieldsAdd successRate = (toDouble(successCount) / toDouble(totalPayments)) * 100
+| sort timestamp desc
+
+-- Payment success rate by payment method
+fetch bizevents
+| filter event.type == "payment.processed"
+| summarize
+    total = count(),
+    succeeded = countIf(status == "SUCCESS"),
+    failed = countIf(status == "FAILED"),
+    avgProcessingTimeMs = avg(processingTimeMs),
+    totalVolume = sum(amount),
+    by: {paymentMethod}
+| fieldsAdd successRate = round((toDouble(succeeded) / toDouble(total)) * 100, 2)
+| sort successRate asc
+
+-- Payment failures breakdown by error code
+fetch bizevents
+| filter event.type == "payment.processed" AND status == "FAILED"
+| summarize
+    failureCount = count(),
+    totalLostRevenue = sum(amount),
+    by: {errorCode, errorMessage, paymentMethod}
+| sort failureCount desc
+| limit 20
+
+-- Payment processing latency percentiles by gateway
+fetch bizevents
+| filter event.type == "payment.processed"
+| summarize
+    p50 = percentile(processingTimeMs, 50),
+    p95 = percentile(processingTimeMs, 95),
+    p99 = percentile(processingTimeMs, 99),
+    maxLatency = max(processingTimeMs),
+    count = count(),
+    by: {paymentGateway, paymentMethod}
+| sort p99 desc
+```
+
+#### Payment Flow Tracing
+
+```sql
+-- End-to-end payment journey (from initiation to settlement)
+fetch bizevents
+| filter event.type STARTSWITH "payment."
+| filter paymentId == "PAY-12345"
+| fields timestamp, event.type, status, amount, currency,
+         paymentGateway, processingTimeMs, errorCode
+| sort timestamp asc
+
+-- Payment SLO: 99.9% success rate for card payments
+fetch bizevents
+| filter event.type == "payment.processed"
+| filter paymentMethod == "CARD"
+| summarize
+    total = count(),
+    succeeded = countIf(status == "SUCCESS"),
+    by: {bin(timestamp, 5m)}
+| fieldsAdd successRate = (toDouble(succeeded) / toDouble(total)) * 100
+| filter successRate < 99.9
+
+-- Stuck/pending payments (processing > 30 seconds)
+fetch bizevents
+| filter event.type == "payment.initiated"
+| filter timestamp < now() - 30s
+| lookup [
+    fetch bizevents
+    | filter event.type == "payment.processed"
+    | fields paymentId, completedAt = timestamp
+  ], sourceField: paymentId, lookupField: paymentId
+| filter isNull(completedAt)
+| fields paymentId, amount, currency, paymentMethod, timestamp
+| sort timestamp asc
+
+-- Revenue by currency and region (real-time)
+fetch bizevents
+| filter event.type == "payment.processed" AND status == "SUCCESS"
+| summarize
+    transactionCount = count(),
+    totalRevenue = sum(amount),
+    avgTicket = avg(amount),
+    by: {currency, region, bin(timestamp, 1h)}
+| sort totalRevenue desc
+```
+
+#### Payment Gateway Health
+
+```sql
+-- Gateway availability and response times
+fetch metrics
+| metric payment.gateway.response_time
+| summarize
+    avg(value) as avgMs,
+    percentile(value, 99) as p99Ms,
+    by: {gateway, bin(timestamp, 5m)}
+
+-- Gateway error rate comparison
+fetch bizevents
+| filter event.type == "payment.gateway.response"
+| summarize
+    total = count(),
+    errors = countIf(httpStatus >= 500),
+    timeouts = countIf(errorCode == "TIMEOUT"),
+    by: {gateway, bin(timestamp, 5m)}
+| fieldsAdd errorRate = round((toDouble(errors) / toDouble(total)) * 100, 2)
+| fieldsAdd timeoutRate = round((toDouble(timeouts) / toDouble(total)) * 100, 2)
+
+-- Payment reconciliation: mismatches between initiated and settled
+fetch bizevents
+| filter event.type == "payment.initiated"
+| filter timestamp BETWEEN now() - 24h AND now() - 1h
+| lookup [
+    fetch bizevents
+    | filter event.type == "payment.settled"
+    | fields paymentId, settledAmount = amount, settledAt = timestamp
+  ], sourceField: paymentId, lookupField: paymentId
+| filter isNull(settledAt) OR amount != settledAmount
+| fields paymentId, amount, settledAmount, currency, paymentMethod, timestamp
+| sort timestamp asc
+```
+
+### Beneficiary Management Monitoring
+
+#### Beneficiary Operations
+
+```sql
+-- Beneficiary addition/modification activity
+fetch bizevents
+| filter event.type STARTSWITH "beneficiary."
+| summarize
+    additions = countIf(event.type == "beneficiary.added"),
+    modifications = countIf(event.type == "beneficiary.modified"),
+    deletions = countIf(event.type == "beneficiary.deleted"),
+    verifications = countIf(event.type == "beneficiary.verified"),
+    by: {bin(timestamp, 1h)}
+| sort timestamp desc
+
+-- Beneficiary verification failure rate
+fetch bizevents
+| filter event.type == "beneficiary.verification"
+| summarize
+    total = count(),
+    passed = countIf(verificationStatus == "PASSED"),
+    failed = countIf(verificationStatus == "FAILED"),
+    pending = countIf(verificationStatus == "PENDING"),
+    by: {verificationType, bin(timestamp, 1h)}
+| fieldsAdd failureRate = round((toDouble(failed) / toDouble(total)) * 100, 2)
+| sort failureRate desc
+
+-- Beneficiary operations by channel (mobile, web, API, branch)
+fetch bizevents
+| filter event.type STARTSWITH "beneficiary."
+| summarize
+    count = count(),
+    by: {event.type, channel, bin(timestamp, 1h)}
+| sort count desc
+
+-- Suspicious beneficiary activity (rapid additions from same account)
+fetch bizevents
+| filter event.type == "beneficiary.added"
+| summarize
+    addedCount = count(),
+    uniqueBeneficiaries = countDistinct(beneficiaryId),
+    by: {accountId, bin(timestamp, 1h)}
+| filter addedCount > 5
+| sort addedCount desc
+
+-- Beneficiary name screening match rate
+fetch bizevents
+| filter event.type == "beneficiary.screening"
+| summarize
+    total = count(),
+    exactMatch = countIf(matchType == "EXACT"),
+    fuzzyMatch = countIf(matchType == "FUZZY"),
+    noMatch = countIf(matchType == "NO_MATCH"),
+    falsePositive = countIf(resolution == "FALSE_POSITIVE"),
+    truePositive = countIf(resolution == "TRUE_POSITIVE"),
+    by: {screeningProvider, bin(timestamp, 1h)}
+| fieldsAdd hitRate = round((toDouble(exactMatch + fuzzyMatch) / toDouble(total)) * 100, 2)
+| fieldsAdd falsePositiveRate = round((toDouble(falsePositive) / toDouble(exactMatch + fuzzyMatch)) * 100, 2)
+```
+
+#### Beneficiary Transfer Monitoring
+
+```sql
+-- Transfers by beneficiary type (domestic, international, internal)
+fetch bizevents
+| filter event.type == "transfer.executed"
+| summarize
+    count = count(),
+    totalAmount = sum(amount),
+    avgAmount = avg(amount),
+    failedCount = countIf(status == "FAILED"),
+    by: {transferType, currency, bin(timestamp, 1h)}
+| sort totalAmount desc
+
+-- High-value beneficiary transfers (above threshold)
+fetch bizevents
+| filter event.type == "transfer.executed"
+| filter amount > 10000
+| fields timestamp, accountId, beneficiaryId, beneficiaryName,
+         amount, currency, transferType, status, riskScore
+| sort amount desc
+| limit 50
+
+-- Beneficiary transfer velocity (same beneficiary, multiple transfers)
+fetch bizevents
+| filter event.type == "transfer.executed"
+| summarize
+    transferCount = count(),
+    totalAmount = sum(amount),
+    distinctSenders = countDistinct(accountId),
+    by: {beneficiaryId, beneficiaryName, bin(timestamp, 24h)}
+| filter transferCount > 10 OR totalAmount > 100000
+| sort totalAmount desc
+```
+
+### Compliance Check & DRE (Dispute Resolution Engine)
+
+#### Compliance Screening
+
+```sql
+-- AML/KYC compliance check summary
+fetch bizevents
+| filter event.type STARTSWITH "compliance."
+| summarize
+    totalChecks = count(),
+    passed = countIf(result == "PASS"),
+    failed = countIf(result == "FAIL"),
+    review = countIf(result == "MANUAL_REVIEW"),
+    escalated = countIf(result == "ESCALATED"),
+    by: {checkType, bin(timestamp, 1h)}
+| fieldsAdd passRate = round((toDouble(passed) / toDouble(totalChecks)) * 100, 2)
+| sort timestamp desc
+
+-- Compliance check types breakdown
+fetch bizevents
+| filter event.type == "compliance.check.completed"
+| summarize
+    count = count(),
+    avgDurationMs = avg(durationMs),
+    p99DurationMs = percentile(durationMs, 99),
+    failRate = countIf(result == "FAIL"),
+    by: {checkType}
+| sort count desc
+
+-- Check types: SANCTIONS, PEP, ADVERSE_MEDIA, WATCHLIST, CDD, EDD
+
+-- Sanctions screening performance
+fetch bizevents
+| filter event.type == "compliance.sanctions.screening"
+| summarize
+    total = count(),
+    hits = countIf(screeningResult == "HIT"),
+    noHits = countIf(screeningResult == "NO_HIT"),
+    pending = countIf(screeningResult == "PENDING_REVIEW"),
+    avgLatencyMs = avg(screeningDurationMs),
+    p99LatencyMs = percentile(screeningDurationMs, 99),
+    by: {screeningProvider, listType, bin(timestamp, 1h)}
+| fieldsAdd hitRate = round((toDouble(hits) / toDouble(total)) * 100, 4)
+
+-- PEP (Politically Exposed Person) screening
+fetch bizevents
+| filter event.type == "compliance.pep.screening"
+| summarize
+    total = count(),
+    matches = countIf(matchFound == true),
+    falsePositives = countIf(resolution == "FALSE_POSITIVE"),
+    confirmed = countIf(resolution == "CONFIRMED"),
+    by: {bin(timestamp, 24h)}
+| fieldsAdd matchRate = round((toDouble(matches) / toDouble(total)) * 100, 2)
+| fieldsAdd fpRate = round((toDouble(falsePositives) / toDouble(matches)) * 100, 2)
+
+-- Transaction monitoring alerts
+fetch bizevents
+| filter event.type == "compliance.transaction.alert"
+| summarize
+    totalAlerts = count(),
+    highRisk = countIf(riskLevel == "HIGH"),
+    mediumRisk = countIf(riskLevel == "MEDIUM"),
+    lowRisk = countIf(riskLevel == "LOW"),
+    dismissed = countIf(resolution == "DISMISSED"),
+    escalated = countIf(resolution == "ESCALATED"),
+    sar_filed = countIf(resolution == "SAR_FILED"),
+    by: {alertRule, bin(timestamp, 24h)}
+| sort highRisk desc
+
+-- Compliance SLA: screening must complete within 5 seconds
+fetch bizevents
+| filter event.type STARTSWITH "compliance." AND event.type CONTAINS "screening"
+| summarize
+    total = count(),
+    withinSla = countIf(durationMs <= 5000),
+    breached = countIf(durationMs > 5000),
+    avgMs = avg(durationMs),
+    p99Ms = percentile(durationMs, 99),
+    by: {checkType, bin(timestamp, 1h)}
+| fieldsAdd slaCompliance = round((toDouble(withinSla) / toDouble(total)) * 100, 2)
+| filter slaCompliance < 99.5
+```
+
+#### Dispute Resolution Engine (DRE) Monitoring
+
+```sql
+-- Dispute lifecycle overview
+fetch bizevents
+| filter event.type STARTSWITH "dispute."
+| summarize
+    opened = countIf(event.type == "dispute.opened"),
+    investigating = countIf(event.type == "dispute.investigating"),
+    resolved = countIf(event.type == "dispute.resolved"),
+    escalated = countIf(event.type == "dispute.escalated"),
+    closed = countIf(event.type == "dispute.closed"),
+    by: {bin(timestamp, 24h)}
+| sort timestamp desc
+
+-- Dispute resolution metrics
+fetch bizevents
+| filter event.type == "dispute.resolved"
+| summarize
+    totalResolved = count(),
+    customerFavor = countIf(resolution == "CUSTOMER_FAVOR"),
+    merchantFavor = countIf(resolution == "MERCHANT_FAVOR"),
+    split = countIf(resolution == "SPLIT"),
+    avgResolutionDays = avg(resolutionDays),
+    medianResolutionDays = percentile(resolutionDays, 50),
+    totalRefundAmount = sum(refundAmount),
+    by: {disputeCategory, bin(timestamp, 7d)}
+| fieldsAdd customerWinRate = round((toDouble(customerFavor) / toDouble(totalResolved)) * 100, 2)
+| sort totalResolved desc
+
+-- Dispute categories and reasons
+fetch bizevents
+| filter event.type == "dispute.opened"
+| summarize
+    count = count(),
+    totalAmount = sum(disputeAmount),
+    avgAmount = avg(disputeAmount),
+    by: {disputeCategory, disputeReason}
+| sort count desc
+| limit 20
+
+-- Categories: FRAUD, UNAUTHORIZED, NOT_RECEIVED, DEFECTIVE,
+--             BILLING_ERROR, DUPLICATE_CHARGE, SUBSCRIPTION_CANCEL
+
+-- Dispute SLA tracking (must acknowledge within 24h, resolve within 15 days)
+fetch bizevents
+| filter event.type == "dispute.opened"
+| lookup [
+    fetch bizevents
+    | filter event.type == "dispute.acknowledged"
+    | fields disputeId, acknowledgedAt = timestamp
+  ], sourceField: disputeId, lookupField: disputeId
+| lookup [
+    fetch bizevents
+    | filter event.type == "dispute.resolved"
+    | fields disputeId, resolvedAt = timestamp
+  ], sourceField: disputeId, lookupField: disputeId
+| fieldsAdd ackHours = (toLong(acknowledgedAt) - toLong(timestamp)) / 3600000
+| fieldsAdd resolutionDays = (toLong(resolvedAt) - toLong(timestamp)) / 86400000
+| fieldsAdd ackSlaBreached = ackHours > 24
+| fieldsAdd resolutionSlaBreached = resolutionDays > 15
+| summarize
+    totalDisputes = count(),
+    ackBreaches = countIf(ackSlaBreached == true),
+    resolutionBreaches = countIf(resolutionSlaBreached == true),
+    avgAckHours = avg(ackHours),
+    avgResolutionDays = avg(resolutionDays),
+    by: {disputeCategory}
+
+-- Chargeback rate by merchant (Visa/MC threshold: 1%)
+fetch bizevents
+| filter event.type == "dispute.chargeback"
+| summarize
+    chargebacks = count(),
+    totalChargebackAmount = sum(amount),
+    by: {merchantId, merchantName, bin(timestamp, 30d)}
+| lookup [
+    fetch bizevents
+    | filter event.type == "payment.processed" AND status == "SUCCESS"
+    | summarize totalTransactions = count(), by: {merchantId}
+  ], sourceField: merchantId, lookupField: merchantId
+| fieldsAdd chargebackRate = round((toDouble(chargebacks) / toDouble(totalTransactions)) * 100, 4)
+| filter chargebackRate > 0.5
+| sort chargebackRate desc
+
+-- Fraud dispute patterns (time-of-day, amount distribution)
+fetch bizevents
+| filter event.type == "dispute.opened" AND disputeCategory == "FRAUD"
+| fieldsAdd hourOfDay = formatTimestamp(timestamp, "HH")
+| summarize
+    count = count(),
+    avgAmount = avg(disputeAmount),
+    totalAmount = sum(disputeAmount),
+    by: {hourOfDay, paymentMethod}
+| sort hourOfDay asc
+
+-- DRE engine performance (processing time, queue depth)
+fetch bizevents
+| filter event.type == "dre.case.processed"
+| summarize
+    casesProcessed = count(),
+    avgProcessingMs = avg(processingTimeMs),
+    p95ProcessingMs = percentile(processingTimeMs, 95),
+    autoResolved = countIf(autoResolution == true),
+    manualReview = countIf(autoResolution == false),
+    by: {disputeCategory, bin(timestamp, 1h)}
+| fieldsAdd autoResolveRate = round((toDouble(autoResolved) / toDouble(casesProcessed)) * 100, 2)
+
+-- DRE queue health
+fetch bizevents
+| filter event.type == "dre.queue.status"
+| fields timestamp, queueDepth, oldestCaseAge, processingRate, backlogHours
+| sort timestamp desc
+| limit 24
+
+-- Dispute escalation path analysis
+fetch bizevents
+| filter event.type STARTSWITH "dispute."
+| filter disputeId == "DSP-67890"
+| fields timestamp, event.type, status, assignee, team,
+         resolution, notes, processingTimeMs
+| sort timestamp asc
+```
+
+#### Banking Compliance Dashboard (DQL-Powered)
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│              COMPLIANCE & DISPUTE RESOLUTION DASHBOARD             │
+├────────────┬────────────┬────────────┬──────────────────────────┤
+│ Screenings │ Hit Rate   │ Disputes   │ Avg Resolution           │
+│  45,230    │   0.12%    │    342     │   4.2 days               │
+│  today     │   ↓ 0.01%  │   ↑ 12    │   ↓ 0.5 days            │
+├────────────┴────────────┴────────────┴──────────────────────────┤
+│                                                                   │
+│  COMPLIANCE SCREENING STATUS                                      │
+│  ┌─────────────────┬───────┬──────┬────────┬──────┬───────────┐ │
+│  │ Check Type      │ Total │ Pass │ Review │ Fail │ SLA %     │ │
+│  │ Sanctions       │12,400 │12,350│   45   │   5  │ 99.8% ✅  │ │
+│  │ PEP             │ 8,200 │ 8,150│   48   │   2  │ 99.6% ✅  │ │
+│  │ Adverse Media   │ 8,200 │ 8,100│   92   │   8  │ 99.2% ✅  │ │
+│  │ Watchlist       │12,400 │12,380│   18   │   2  │ 99.9% ✅  │ │
+│  │ EDD             │ 4,030 │ 3,800│  210   │  20  │ 98.1% ⚠️  │ │
+│  └─────────────────┴───────┴──────┴────────┴──────┴───────────┘ │
+│                                                                   │
+│  DISPUTE RESOLUTION                                               │
+│  ┌─────────────────┬──────┬───────┬──────┬──────────────────┐   │
+│  │ Category        │ Open │ In Rev│ Resolved│ Chargeback Rate│   │
+│  │ Fraud           │  45  │  32   │  120    │ 0.08% ✅       │   │
+│  │ Unauthorized    │  28  │  18   │   85    │ 0.05% ✅       │   │
+│  │ Not Received    │  15  │  12   │   65    │ 0.03% ✅       │   │
+│  │ Billing Error   │   8  │   5   │   42    │ 0.02% ✅       │   │
+│  │ Duplicate Charge│   3  │   2   │   28    │ 0.01% ✅       │   │
+│  └─────────────────┴──────┴───────┴─────────┴────────────────┘  │
+│                                                                   │
+│  PAYMENT HEALTH                                                   │
+│  ┌────────────────┬──────────┬─────────┬──────────────────────┐ │
+│  │ Gateway        │ Success  │ P99 (ms)│ Volume (24h)         │ │
+│  │ Card Network   │ 99.4%    │  850    │ $2.4M                │ │
+│  │ SWIFT          │ 99.1%    │ 3,200   │ $12.8M               │ │
+│  │ ACH/SEPA       │ 99.7%    │ 1,100   │ $5.6M                │ │
+│  │ Real-Time (RTP)│ 99.8%    │  450    │ $890K                │ │
+│  └────────────────┴──────────┴─────────┴──────────────────────┘ │
+│                                                                   │
+│  DRE ENGINE STATUS                                                │
+│  Queue Depth: 42 ✅  │  Auto-resolve Rate: 68%  │  Backlog: 0h  │
+│  Processing: 850ms avg  │  Cases/hour: 120  │  Escalated: 8      │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Java Business Event Ingestion
+
+```java
+// Send business events to Dynatrace for DQL analysis
+@Service
+@Slf4j
+public class PaymentEventPublisher {
+
+    private final MeterRegistry meterRegistry;
+
+    // Option 1: Structured logging (OneAgent auto-ingests)
+    public void publishPaymentEvent(Payment payment) {
+        log.info("Payment processed",
+            kv("event.type", "payment.processed"),
+            kv("paymentId", payment.getId()),
+            kv("amount", payment.getAmount()),
+            kv("currency", payment.getCurrency()),
+            kv("paymentMethod", payment.getMethod()),
+            kv("paymentGateway", payment.getGateway()),
+            kv("status", payment.getStatus()),
+            kv("processingTimeMs", payment.getProcessingTimeMs()),
+            kv("merchantId", payment.getMerchantId()),
+            kv("region", payment.getRegion()),
+            kv("errorCode", payment.getErrorCode())
+        );
+
+        // Metrics for real-time dashboards
+        meterRegistry.counter("payment.processed",
+            "status", payment.getStatus(),
+            "method", payment.getMethod(),
+            "gateway", payment.getGateway()
+        ).increment();
+
+        meterRegistry.timer("payment.processing.time",
+            "gateway", payment.getGateway()
+        ).record(Duration.ofMillis(payment.getProcessingTimeMs()));
+    }
+
+    // Option 2: Dynatrace Business Events API (direct)
+    public void publishBusinessEvent(String eventType, Map<String, Object> data) {
+        // POST to /api/v2/bizevents/ingest
+        data.put("event.type", eventType);
+        data.put("event.provider", "payment-service");
+        data.put("timestamp", Instant.now().toString());
+        dynatraceClient.ingestBizEvent(data);
+    }
+}
+
+// Compliance event publishing
+@Service
+public class ComplianceEventPublisher {
+
+    public void publishScreeningResult(ScreeningResult result) {
+        log.info("Compliance screening completed",
+            kv("event.type", "compliance.sanctions.screening"),
+            kv("screeningId", result.getId()),
+            kv("entityType", result.getEntityType()),  // BENEFICIARY, CUSTOMER, TRANSACTION
+            kv("screeningResult", result.getResult()),  // HIT, NO_HIT, PENDING_REVIEW
+            kv("matchType", result.getMatchType()),
+            kv("screeningProvider", result.getProvider()),
+            kv("listType", result.getListType()),       // OFAC, EU, UN, LOCAL
+            kv("screeningDurationMs", result.getDurationMs()),
+            kv("confidence", result.getConfidenceScore())
+        );
+    }
+
+    public void publishDisputeEvent(Dispute dispute, String eventType) {
+        log.info("Dispute event",
+            kv("event.type", "dispute." + eventType),
+            kv("disputeId", dispute.getId()),
+            kv("disputeCategory", dispute.getCategory()),
+            kv("disputeReason", dispute.getReason()),
+            kv("disputeAmount", dispute.getAmount()),
+            kv("currency", dispute.getCurrency()),
+            kv("paymentId", dispute.getOriginalPaymentId()),
+            kv("merchantId", dispute.getMerchantId()),
+            kv("status", dispute.getStatus()),
+            kv("resolution", dispute.getResolution()),
+            kv("resolutionDays", dispute.getResolutionDays()),
+            kv("autoResolution", dispute.isAutoResolved())
+        );
+    }
+}
 ```
 
 ---
