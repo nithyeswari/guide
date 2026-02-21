@@ -38,9 +38,9 @@ git checkout -b fix/your-fix-name
 #### Documentation Standards
 
 **File Naming:**
-- Use lowercase with hyphens: `my-new-feature.md`
-- Place in appropriate directory based on topic
-- Update the relevant index.md file
+- Use lowercase with hyphens (kebab-case): `my-new-feature.md`
+- Place in the appropriate topic directory (e.g., `docs/java/`, `docs/react/`, `docs/architecture/`)
+- Update the relevant `index.md` file if one exists for the topic
 
 **Markdown Formatting:**
 ```markdown
