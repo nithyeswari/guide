@@ -16,6 +16,9 @@
 - [Log Management](#log-management)
 - [DQL for Banking — Payments, Beneficiary & Compliance](#dql-for-banking--payments-beneficiary--compliance)
 - [Advanced Patterns](#advanced-patterns)
+- [Practical Troubleshooting Dashboards](#practical-troubleshooting-dashboards)
+- [Session Replay & Real User Monitoring](#session-replay--real-user-monitoring)
+- [New Dynatrace Features (2024-2025)](#new-dynatrace-features-2024-2025)
 - [Anti-Patterns](#anti-patterns)
 - [Best Practices Checklist](#best-practices-checklist)
 - [Resources](#resources)
@@ -1621,6 +1624,997 @@ Davis AI Alert Example:
 
 ---
 
+## Practical Troubleshooting Dashboards
+
+> These dashboards are designed for on-call engineers and SREs to quickly identify, isolate, and resolve production issues.
+
+### 1. Error Investigation Dashboard
+
+**Purpose:** Find and fix errors fast — what's failing, where, and why.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🔴 ERROR INVESTIGATION DASHBOARD                     │
+├───────────────────────────────┬─────────────────────────────────────────┤
+│  Error Rate Trend (24h)       │  Top 10 Errors by Count                │
+│  ▁▁▂▂▃▃▅▅██▇▅▃▂▁▁           │  ┌─────────────────────────────┐      │
+│  Line chart: errors/min       │  │ NullPointerException   1,247 │      │
+│  Split by: service_name       │  │ TimeoutException         891 │      │
+│                               │  │ 503 ServiceUnavailable   634 │      │
+│                               │  │ ConnectionRefused        412 │      │
+│                               │  │ DeserializationError     287 │      │
+│                               │  └─────────────────────────────┘      │
+├───────────────────────────────┼─────────────────────────────────────────┤
+│  Failed Requests by Service   │  Error Hotspots (Code-Level)           │
+│  ┌──────────────────────┐     │  ┌──────────────────────────────────┐  │
+│  │ payment-svc   ██████ │     │  │ PaymentProcessor.java:142        │  │
+│  │ order-svc     ████   │     │  │ KafkaConsumer.java:89            │  │
+│  │ user-svc      ██     │     │  │ RestClient.java:201              │  │
+│  │ notify-svc    █      │     │  │ DatabasePool.java:67             │  │
+│  └──────────────────────┘     │  └──────────────────────────────────┘  │
+├───────────────────────────────┴─────────────────────────────────────────┤
+│  Recent Exceptions (Live Feed)                                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │ 14:23:01 payment-svc  NullPointerException at PaymentProc...:142   ││
+│  │ 14:23:03 order-svc    TimeoutException calling payment-svc (5000ms)││
+│  │ 14:23:05 payment-svc  ConnectionRefused: redis-master:6379         ││
+│  │ 14:23:08 notify-svc   KafkaException: Broker not available         ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**DQL Queries:**
+
+```dql
+// Error rate trend per service (last 24 hours, 5-minute buckets)
+fetch dt.entity.service
+| lookup [
+    fetch bizevents
+    | filter event.type == "com.dynatrace.error"
+    | makeTimeseries count(), by:{dt.entity.service}, interval:5m
+  ], sourceField:id, lookupField:dt.entity.service
+
+// Top exceptions with stack trace grouping
+fetch logs
+| filter loglevel == "ERROR"
+| parse content, "LD:exception_class '.java:' INT:line_number"
+| summarize count = count(), by:{exception_class, line_number, dt.entity.service}
+| sort count desc
+| limit 20
+
+// Error spike detection — comparing current hour to previous 24h baseline
+fetch logs
+| filter loglevel == "ERROR"
+| makeTimeseries current_errors = count(), interval:5m
+| join [
+    fetch logs, from:now()-25h, to:now()-1h
+    | filter loglevel == "ERROR"
+    | makeTimeseries baseline_errors = avg(count()), interval:5m
+  ]
+| fieldsAdd spike_ratio = current_errors / baseline_errors
+| filter spike_ratio > 3.0
+
+// Failed HTTP requests by endpoint
+fetch spans
+| filter http.response.status_code >= 500
+| summarize error_count = count(),
+    by:{http.route, http.request.method, dt.entity.service}
+| sort error_count desc
+| limit 25
+
+// Live exception feed with trace context
+fetch logs, from:now()-15m
+| filter loglevel == "ERROR"
+| fields timestamp, dt.entity.service, content, trace_id, span_id
+| sort timestamp desc
+| limit 50
+```
+
+### 2. Latency Root-Cause Dashboard
+
+**Purpose:** Find what's slow and trace it to the exact bottleneck.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    ⏱ LATENCY ROOT-CAUSE DASHBOARD                       │
+├───────────────────────────────┬─────────────────────────────────────────┤
+│  P50 / P95 / P99 Trends      │  Slowest Endpoints (P95)               │
+│                               │  ┌──────────────────────────────────┐  │
+│  P50 ——— 45ms                │  │ POST /api/payments      1,240ms  │  │
+│  P95 ─ ─ 320ms               │  │ GET  /api/orders/:id      890ms  │  │
+│  P99 ··· 1,200ms             │  │ POST /api/transfers       780ms  │  │
+│                               │  │ GET  /api/accounts        340ms  │  │
+│  ▁▁▂▃▅██▇▅▃▂▁               │  └──────────────────────────────────┘  │
+├───────────────────────────────┼─────────────────────────────────────────┤
+│  Time Breakdown (avg request) │  Database Query Hotspots               │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ App Logic    ████  35%   │ │  │ SELECT * FROM payments   450ms  │  │
+│  │ Database     ██████ 45%  │ │  │ INSERT INTO audit_log    230ms  │  │
+│  │ External API ██    15%   │ │  │ UPDATE accounts SET      180ms  │  │
+│  │ Network      █      5%  │ │  │ SELECT FROM beneficiary  120ms  │  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+├───────────────────────────────┼─────────────────────────────────────────┤
+│  Slow Traces (>1s)            │  Dependency Latency Map                │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ trace_abc → 3,450ms      │ │  │ Redis        ●─── 12ms (healthy)│  │
+│  │   └ DB query  2,100ms    │ │  │ PostgreSQL   ●─── 89ms (warn)   │  │
+│  │   └ Redis       200ms    │ │  │ Kafka        ●─── 23ms (healthy)│  │
+│  │ trace_def → 2,100ms      │ │  │ partner-api  ●─── 670ms (SLOW)  │  │
+│  │   └ ext-api   1,800ms    │ │  │ auth-service ●─── 45ms (healthy)│  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**DQL Queries:**
+
+```dql
+// Percentile latency trends
+fetch spans
+| filter span.kind == "SERVER"
+| makeTimeseries p50 = percentile(duration, 50),
+    p95 = percentile(duration, 95),
+    p99 = percentile(duration, 99),
+    interval:5m
+
+// Slowest endpoints with percentile breakdown
+fetch spans
+| filter span.kind == "SERVER"
+| summarize p50 = percentile(duration, 50),
+    p95 = percentile(duration, 95),
+    p99 = percentile(duration, 99),
+    count = count(),
+    by:{http.route, http.request.method}
+| sort p95 desc
+| limit 15
+
+// Time breakdown by span category (where is time spent?)
+fetch spans
+| filter trace_id == "<trace_id>"
+| fieldsAdd category = if(
+    db.system != "", "Database",
+    http.url != "" AND span.kind == "CLIENT", "External API",
+    messaging.system != "", "Messaging",
+    else: "Application Logic"
+  )
+| summarize total_duration = sum(duration), by:{category}
+| fieldsAdd percentage = 100.0 * total_duration / sum(total_duration)
+
+// Database query hotspots — slowest queries
+fetch spans
+| filter db.system != ""
+| summarize avg_duration = avg(duration),
+    p95_duration = percentile(duration, 95),
+    count = count(),
+    by:{db.statement, db.system, dt.entity.service}
+| sort p95_duration desc
+| limit 20
+
+// Dependency latency (how healthy are downstream services?)
+fetch spans
+| filter span.kind == "CLIENT"
+| summarize avg_latency = avg(duration),
+    p95_latency = percentile(duration, 95),
+    error_rate = countIf(otel.status_code == "ERROR") / count() * 100,
+    by:{peer.service}
+| fieldsAdd health = if(p95_latency < 100000000, "healthy",
+    p95_latency < 500000000, "warn", else: "SLOW")
+| sort p95_latency desc
+
+// Slow traces with breakdown (outlier detection)
+fetch spans
+| filter span.kind == "SERVER" AND duration > 1000000000
+| fields trace_id, duration, http.route, dt.entity.service, timestamp
+| sort duration desc
+| limit 30
+```
+
+### 3. Deployment Regression Dashboard
+
+**Purpose:** Detect if a new deployment broke things — compare before vs after.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🚀 DEPLOYMENT REGRESSION DASHBOARD                   │
+├─────────────────────────────────────────────────────────────────────────┤
+│  Deployment Timeline                                                    │
+│  ─────●──────────●────────●──────────────────> time                    │
+│    v2.3.0     v2.3.1    v2.4.0 ← CURRENT                              │
+│                           ▲                                             │
+│                    Error rate spike detected                            │
+├───────────────────────────────┬─────────────────────────────────────────┤
+│  Before vs After (P95 Latency)│  Before vs After (Error Rate)          │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ Before (v2.3.1): 210ms  │ │  │ Before: 0.12%                    │  │
+│  │ After  (v2.4.0): 890ms  │ │  │ After:  2.34%  ⚠ +1,850%       │  │
+│  │ Change: +323% ⚠️        │ │  │                                  │  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+├───────────────────────────────┼─────────────────────────────────────────┤
+│  New Errors Since Deploy      │  Throughput Comparison                  │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ OutOfMemoryError    NEW  │ │  │ Before: 2,340 req/s             │  │
+│  │ ClassCastException  NEW  │ │  │ After:  1,870 req/s (-20%)      │  │
+│  │ SocketTimeout     +400%  │ │  │                                  │  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+├───────────────────────────────┴─────────────────────────────────────────┤
+│  JVM Health After Deploy                                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │ Heap Usage: ▁▂▃▅▆██████ (trending up — possible memory leak)      ││
+│  │ GC Pause:   ▁▁▁▂▃▃▅▆██  (GC pauses increasing)                   ││
+│  │ Thread Count: 245 → 312  (+27%)                                    ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**DQL Queries:**
+
+```dql
+// Compare error rate before/after deployment event
+fetch events
+| filter event.type == "CUSTOM_DEPLOYMENT"
+| sort timestamp desc
+| limit 1
+| fields deploy_time = timestamp, version = tag.version
+// Use the deploy_time in subsequent queries:
+
+// Error rate comparison (1h before vs 1h after deployment)
+fetch spans, from:now()-3h
+| filter span.kind == "SERVER"
+| fieldsAdd period = if(timestamp < $deploy_time, "before", "after")
+| summarize total = count(),
+    errors = countIf(otel.status_code == "ERROR"),
+    by:{period}
+| fieldsAdd error_rate = 100.0 * errors / total
+
+// Latency regression per endpoint
+fetch spans, from:now()-3h
+| filter span.kind == "SERVER"
+| fieldsAdd period = if(timestamp < $deploy_time, "before", "after")
+| summarize p95 = percentile(duration, 95), by:{period, http.route}
+| sort http.route
+
+// New exceptions that appeared only after deployment
+fetch logs, from:$deploy_time
+| filter loglevel == "ERROR"
+| parse content, "LD:exception_class"
+| summarize post_deploy_count = count(), by:{exception_class}
+| lookup [
+    fetch logs, from:$deploy_time - 24h, to:$deploy_time
+    | filter loglevel == "ERROR"
+    | parse content, "LD:exception_class"
+    | summarize pre_deploy_count = count(), by:{exception_class}
+  ], sourceField:exception_class, lookupField:exception_class
+| fieldsAdd pre_deploy_count = coalesce(pre_deploy_count, 0)
+| filter pre_deploy_count == 0  // brand new errors
+| sort post_deploy_count desc
+
+// JVM memory trend after deployment
+fetch metrics, from:now()-6h
+| filter metric.key == "jvm.memory.used"
+| filter dt.entity.service == "SERVICE-<id>"
+| makeTimeseries avg(value), interval:5m
+
+// Send deployment events from CI/CD pipeline (curl example):
+// curl -X POST "https://{env-id}.live.dynatrace.com/api/v2/events/ingest" \
+//   -H "Authorization: Api-Token $DT_TOKEN" \
+//   -d '{
+//     "eventType": "CUSTOM_DEPLOYMENT",
+//     "title": "Deployment v2.4.0",
+//     "properties": {
+//       "version": "v2.4.0",
+//       "service": "payment-service",
+//       "commit": "abc123"
+//     }
+//   }'
+```
+
+### 4. Infrastructure & Resource Bottleneck Dashboard
+
+**Purpose:** Find resource exhaustion — CPU, memory, disk, connections.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🖥 INFRASTRUCTURE BOTTLENECK DASHBOARD                │
+├────────────────────┬────────────────────┬───────────────────────────────┤
+│  CPU by Pod        │  Memory by Pod     │  Disk I/O                     │
+│  payment-1 ████ 78%│  payment-1 █████89%│  /data  ██████ 67% (warn)    │
+│  payment-2 ███  62%│  payment-2 ████ 71%│  /logs  ████   45%           │
+│  order-1   ██   41%│  order-1   ███  52%│  /tmp   ██     23%           │
+│  order-2   ██   38%│  order-2   ███  48%│                               │
+├────────────────────┴────────────────────┴───────────────────────────────┤
+│  Connection Pools                                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │ PostgreSQL Pool: 18/20 active (⚠ near exhaustion)                  ││
+│  │ Redis Pool:       5/50 active (healthy)                             ││
+│  │ HTTP Pool:       45/100 active (healthy)                            ││
+│  │ Kafka Consumers:  3/3 active (at capacity)                          ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+├───────────────────────────────┬─────────────────────────────────────────┤
+│  Thread States                │  GC Activity                            │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ RUNNABLE         45      │ │  │ Young GC:  12/min (healthy)      │  │
+│  │ WAITING          23      │ │  │ Old GC:     3/min (⚠ elevated)  │  │
+│  │ TIMED_WAITING    67      │ │  │ GC Pause P95:  120ms            │  │
+│  │ BLOCKED          12 ⚠   │ │  │ Heap After GC:  72% (⚠ rising)  │  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+├───────────────────────────────┴─────────────────────────────────────────┤
+│  Pod Restart History (last 24h)                                         │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │ payment-svc-abc123  OOMKilled   3 restarts   last: 14:23           ││
+│  │ order-svc-def456    CrashLoop   5 restarts   last: 13:58           ││
+│  │ kafka-consumer-ghi  OOMKilled   1 restart    last: 09:12           ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**DQL Queries:**
+
+```dql
+// CPU usage by pod (top consumers)
+fetch metrics
+| filter metric.key == "dt.kubernetes.container.cpu_usage"
+| summarize avg_cpu = avg(value), by:{k8s.pod.name, k8s.namespace.name}
+| sort avg_cpu desc
+| limit 20
+
+// Memory usage with OOM risk detection
+fetch metrics
+| filter metric.key == "dt.kubernetes.container.memory_working_set"
+| summarize current_memory = last(value), by:{k8s.pod.name}
+| lookup [
+    fetch metrics
+    | filter metric.key == "dt.kubernetes.container.memory_limit"
+    | summarize mem_limit = last(value), by:{k8s.pod.name}
+  ], sourceField:k8s.pod.name, lookupField:k8s.pod.name
+| fieldsAdd usage_pct = 100.0 * current_memory / mem_limit
+| filter usage_pct > 70
+| sort usage_pct desc
+
+// Connection pool saturation
+fetch metrics
+| filter metric.key == "hikaricp.connections.active"
+    OR metric.key == "hikaricp.connections.max"
+| summarize latest = last(value), by:{metric.key, pool.name}
+
+// Thread state analysis (detect thread starvation)
+fetch metrics
+| filter metric.key == "jvm.threads.states"
+| summarize count = sum(value), by:{state}
+| sort count desc
+
+// GC pause trends (memory leak indicator)
+fetch metrics
+| filter metric.key == "jvm.gc.pause"
+| makeTimeseries p95_gc_pause = percentile(value, 95), interval:10m
+
+// Pod restart events (OOMKill, CrashLoopBackOff)
+fetch events
+| filter event.type == "K8S_EVENT"
+| filter content contains "OOMKilled" OR content contains "CrashLoopBackOff"
+    OR content contains "Restarting"
+| fields timestamp, k8s.pod.name, reason, content
+| sort timestamp desc
+| limit 50
+
+// Heap usage after GC (rising = memory leak)
+fetch metrics
+| filter metric.key == "jvm.memory.used" AND jvm.memory.type == "heap"
+| makeTimeseries heap_after_gc = min(value), interval:10m
+```
+
+### 5. Dependency Failure & Circuit Breaker Dashboard
+
+**Purpose:** When downstream services or databases fail, see the blast radius.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    🔗 DEPENDENCY FAILURE DASHBOARD                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│  Dependency Health Map                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │  [payment-svc] ──●── [PostgreSQL]     🟢 12ms                      ││
+│  │       │         ──●── [Redis]         🟢  3ms                      ││
+│  │       │         ──●── [partner-api]   🔴 TIMEOUT                   ││
+│  │       │         ──●── [Kafka]         🟢 15ms                      ││
+│  │       │                                                             ││
+│  │  [order-svc]   ──●── [PostgreSQL]     🟡 230ms (degraded)          ││
+│  │       │         ──●── [payment-svc]   🔴 CIRCUIT OPEN              ││
+│  │       │         ──●── [Redis]         🟢  5ms                      ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+├───────────────────────────────┬─────────────────────────────────────────┤
+│  Circuit Breaker States       │  Retry / Fallback Activity              │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ partner-api    OPEN   🔴 │ │  │ Retries:    1,234/min (⚠ high)  │  │
+│  │ fraud-check    HALF   🟡 │ │  │ Fallbacks:    567/min            │  │
+│  │ notification   CLOSED 🟢 │ │  │ Timeouts:     890/min            │  │
+│  │ account-svc    CLOSED 🟢 │ │  │ Bulkhead Rej:  23/min           │  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+├───────────────────────────────┼─────────────────────────────────────────┤
+│  Downstream Error Rates       │  Cascade Risk Score                     │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ partner-api     87% ████│ │  │ payment-svc:  HIGH (3 deps down) │  │
+│  │ PostgreSQL       5%  █  │ │  │ order-svc:    MEDIUM (1 dep)     │  │
+│  │ Redis            0%     │ │  │ user-svc:     LOW (all healthy)  │  │
+│  │ Kafka            1%     │ │  │ notify-svc:   LOW                │  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**DQL Queries:**
+
+```dql
+// Downstream dependency health (error rate and latency)
+fetch spans
+| filter span.kind == "CLIENT"
+| summarize total = count(),
+    errors = countIf(otel.status_code == "ERROR"),
+    avg_latency = avg(duration),
+    p95_latency = percentile(duration, 95),
+    by:{peer.service, dt.entity.service}
+| fieldsAdd error_rate = 100.0 * errors / total
+| fieldsAdd health = if(error_rate > 50, "DOWN",
+    error_rate > 10, "degraded", else: "healthy")
+| sort error_rate desc
+
+// Circuit breaker state tracking (Resilience4j metrics)
+fetch metrics
+| filter metric.key == "resilience4j.circuitbreaker.state"
+| summarize state = last(value), by:{name}
+// state: 0=CLOSED, 1=OPEN, 2=HALF_OPEN
+
+// Retry activity (high retries = dependency struggling)
+fetch metrics
+| filter metric.key == "resilience4j.retry.calls"
+| summarize retries_per_min = rate(sum(value), 1m), by:{name, kind}
+| filter kind == "successful_with_retry" OR kind == "failed_with_retry"
+
+// Timeout trends per dependency
+fetch spans
+| filter span.kind == "CLIENT" AND otel.status_code == "ERROR"
+| filter otel.status_description contains "timeout"
+    OR otel.status_description contains "Timeout"
+| makeTimeseries timeout_count = count(), by:{peer.service}, interval:5m
+
+// Cascade failure detection — services with multiple failing dependencies
+fetch spans
+| filter span.kind == "CLIENT" AND otel.status_code == "ERROR"
+| summarize failing_deps = countDistinct(peer.service),
+    total_errors = count(),
+    by:{dt.entity.service}
+| filter failing_deps >= 2
+| sort failing_deps desc
+
+// Bulkhead rejections (thread pool exhaustion)
+fetch metrics
+| filter metric.key == "resilience4j.bulkhead.available.concurrent.calls"
+| summarize available = last(value), by:{name}
+| filter available == 0  // fully saturated
+```
+
+### 6. Kafka Consumer Lag & DLQ Dashboard
+
+**Purpose:** Kafka consumers falling behind or messages landing in DLQ.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    📊 KAFKA LAG & DLQ DASHBOARD                         │
+├───────────────────────────────┬─────────────────────────────────────────┤
+│  Consumer Lag by Group        │  DLQ Messages (last 24h)               │
+│  ┌──────────────────────────┐ │  ┌──────────────────────────────────┐  │
+│  │ payment-group  ████ 45K  │ │  │ payments.DLQ:    234 (+12/hr)    │  │
+│  │ order-group    ██   12K  │ │  │ orders.DLQ:       56 (+3/hr)     │  │
+│  │ notify-group   █     3K  │ │  │ compliance.DLQ:   12 (+1/hr)     │  │
+│  │ audit-group    ▏    200  │ │  │ notifications.DLQ: 0             │  │
+│  └──────────────────────────┘ │  └──────────────────────────────────┘  │
+├───────────────────────────────┼─────────────────────────────────────────┤
+│  Lag Trend (payment-group)    │  DLQ Error Breakdown                   │
+│  ▁▁▂▃▅████████████           │  ┌──────────────────────────────────┐  │
+│  ⚠ Lag growing steadily      │  │ DeserializationError   45%       │  │
+│  since 13:00                  │  │ ValidationException    30%       │  │
+│                               │  │ DuplicateKeyException  15%       │  │
+│                               │  │ TimeoutException       10%       │  │
+│                               │  └──────────────────────────────────┘  │
+├───────────────────────────────┴─────────────────────────────────────────┤
+│  Consumer Processing Rate vs Produce Rate                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐│
+│  │ Produce Rate:  ████████████████████  2,340 msg/s                   ││
+│  │ Consume Rate:  ████████████          1,450 msg/s  ⚠ falling behind││
+│  │ Gap:                       ████████    890 msg/s                    ││
+│  └─────────────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**DQL Queries:**
+
+```dql
+// Consumer lag by group and topic
+fetch metrics
+| filter metric.key == "kafka.consumer.lag"
+    OR metric.key == "kafka_consumergroup_lag"
+| summarize max_lag = max(value),
+    by:{consumer_group, topic}
+| sort max_lag desc
+
+// DLQ message count trend
+fetch bizevents
+| filter event.type == "com.kafka.dlq"
+| makeTimeseries dlq_count = count(), by:{topic}, interval:1h
+
+// DLQ error analysis (why are messages failing?)
+fetch logs
+| filter content contains "DLQ" OR content contains "dead.letter"
+| parse content, "'exception': 'LD:exception_type'"
+| summarize count = count(), by:{exception_type, topic}
+| sort count desc
+
+// Produce rate vs consume rate (detect widening gap)
+fetch metrics
+| filter metric.key == "kafka.producer.record.send.rate"
+    OR metric.key == "kafka.consumer.records.consumed.rate"
+| makeTimeseries rate = avg(value), by:{metric.key}, interval:5m
+
+// Consumer group health (active members, rebalances)
+fetch metrics
+| filter metric.key == "kafka.consumer.assigned.partitions"
+| summarize partitions = sum(value), by:{consumer_group}
+```
+
+### Troubleshooting Workflow: 5-Step Process
+
+```
+Step 1: CHECK ERRORS         → Error Investigation Dashboard
+        "What's broken?"       Look for error spikes, new exception types
+
+Step 2: CHECK LATENCY         → Latency Root-Cause Dashboard
+        "What's slow?"         Find P95/P99 spikes, trace slow paths
+
+Step 3: CHECK DEPLOYMENTS     → Deployment Regression Dashboard
+        "Did we break it?"     Compare before/after last deploy
+
+Step 4: CHECK RESOURCES       → Infrastructure Dashboard
+        "Are we out of X?"     CPU, memory, connections, threads
+
+Step 5: CHECK DEPENDENCIES    → Dependency Failure Dashboard
+        "Is something else     Circuit breakers, downstream errors,
+         causing this?"        cascade detection
+```
+
+---
+
+## Session Replay & Real User Monitoring
+
+### What is Session Replay?
+
+Session Replay is Dynatrace's capability to visually record and reconstruct user sessions in your web and mobile applications — without capturing screenshots or videos. Instead, it captures DOM mutations and user interactions to faithfully replay exactly what the user experienced.
+
+### How Session Replay Works
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                    SESSION REPLAY ARCHITECTURE                    │
+│                                                                  │
+│  Browser / Mobile App                                            │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  OneAgent JavaScript / Mobile SDK                          │  │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌────────────────┐   │  │
+│  │  │ DOM Mutation  │  │ User Input   │  │ Network/XHR    │   │  │
+│  │  │ Observer      │  │ Capture      │  │ Capture        │   │  │
+│  │  └──────┬───────┘  └──────┬───────┘  └──────┬─────────┘   │  │
+│  │         └─────────────────┼─────────────────┘              │  │
+│  │                           ▼                                │  │
+│  │              Compressed Event Stream                       │  │
+│  │              (~100 KB/min per session)                     │  │
+│  └───────────────────────────┬────────────────────────────────┘  │
+│                              ▼                                   │
+│  Dynatrace Cluster / Grail                                       │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  Session Replay Storage  ──→  Linked to PurePath Traces    │  │
+│  │  Privacy Engine          ──→  Masking Rules Applied        │  │
+│  │  Replay Renderer         ──→  Visual Playback in Browser   │  │
+│  └────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Key mechanisms:**
+- **DOM-based recording** — Captures HTML structure mutations, not pixel-level screenshots
+- **Incremental capture** — Only sends DOM changes (diffs), not the entire page
+- **Bandwidth-efficient** — ~100 KB/min per session (much lighter than video recording)
+- **Linked to traces** — Every replay frame is correlated with PurePath distributed traces
+- **Privacy-first** — Masking rules applied before data leaves the browser
+
+### Web Session Replay
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  SESSION REPLAY PLAYER                                              │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │  ┌──────────────────────────────────────────────────────┐     │  │
+│  │  │                                                      │     │  │
+│  │  │         Visual Replay of User Session                │     │  │
+│  │  │         (reconstructed from DOM events)              │     │  │
+│  │  │                                                      │     │  │
+│  │  │  [User clicks "Pay Now"] → [Spinner] → [Error page] │     │  │
+│  │  │                                                      │     │  │
+│  │  └──────────────────────────────────────────────────────┘     │  │
+│  │                                                               │  │
+│  │  Timeline: ●───────●────────●────●──────●────────────→        │  │
+│  │           Click  Page Load  XHR  Error  Rage Click            │  │
+│  │                                                               │  │
+│  │  ┌─────────────────────────────────────────────────────────┐  │  │
+│  │  │ Waterfall: GET /api/payment 503 (2,340ms)               │  │  │
+│  │  │            PurePath: trace_id=abc123 → view full trace  │  │  │
+│  │  └─────────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**What it captures:**
+| Data Type | Captured | Privacy Notes |
+|-----------|----------|---------------|
+| Page loads & navigation | Yes | URLs visible |
+| Button clicks & form input | Yes | Input values can be masked |
+| Mouse movements & scrolls | Yes | No PII |
+| XHR/Fetch requests | Yes | Linked to backend traces |
+| JavaScript errors | Yes | Stack traces included |
+| CSS changes & animations | Yes | Visual fidelity |
+| Rage clicks (repeated clicks) | Yes | Frustration signal |
+| Page resource loading | Yes | Waterfall timing |
+
+### Mobile Session Replay
+
+Dynatrace extends Session Replay to native mobile apps:
+
+| Feature | iOS | Android |
+|---------|-----|---------|
+| **Screen recording** | View hierarchy capture | View hierarchy capture |
+| **Gesture capture** | Taps, swipes, pinch | Taps, swipes, pinch |
+| **Crash replay** | See what user did before crash | See what user did before crash |
+| **Network requests** | XHR/OkHttp linked to backend | XHR/OkHttp linked to backend |
+| **App lifecycle** | Foreground/background/terminate | Foreground/background/terminate |
+| **Privacy masking** | Per-view masking rules | Per-view masking rules |
+| **Data overhead** | ~50-80 KB/min | ~50-80 KB/min |
+
+### Privacy & Data Masking
+
+Session Replay provides multiple masking levels to protect sensitive data:
+
+```java
+// Dynatrace RUM JavaScript configuration
+dtrum.enable({
+    sessionReplay: {
+        enabled: true,
+        maskingRule: "MASK_USER_INPUT",   // Options below
+        costControl: 100                   // % of sessions to record
+    }
+});
+```
+
+**Masking levels:**
+
+| Level | What it masks | Use case |
+|-------|--------------|----------|
+| `ALLOW_ALL` | Nothing masked | Internal/dev environments only |
+| `MASK_USER_INPUT` | All form inputs replaced with `***` | **Recommended for most apps** |
+| `MASK_ALL_TEXT` | All text content masked | High-security / banking apps |
+| `MASK_ALL` | Everything masked (only layout visible) | Maximum privacy, compliance |
+
+**Fine-grained masking with CSS classes:**
+
+```html
+<!-- Mask specific elements -->
+<span class="dtPrivacyMask">John Smith</span>         <!-- Masked -->
+<input class="dtPrivacyMaskInput" type="text" />       <!-- Input masked -->
+
+<!-- Explicitly allow elements (when using MASK_ALL_TEXT) -->
+<h1 class="dtPrivacyAllow">Welcome to Dashboard</h1>  <!-- Not masked -->
+
+<!-- Block recording of entire sections -->
+<div class="dtPrivacyBlock">                           <!-- Replaced with placeholder -->
+    <sensitive-component />
+</div>
+```
+
+### Session Replay + Troubleshooting Workflow
+
+The power of Session Replay is linking **what the user saw** to **what happened in the backend**:
+
+```
+User Experience (Session Replay)          Backend (PurePath Traces)
+─────────────────────────────────         ─────────────────────────────
+1. User opens payment page                → GET /api/account (200, 45ms)
+2. User fills in amount: $500             → (no backend call yet)
+3. User clicks "Pay Now"                  → POST /api/payments (503, 5200ms)
+   ↳ Sees spinner for 5s                    ↳ payment-svc → db query (4800ms) 💀
+   ↳ Error page shown                       ↳ DB connection pool exhausted
+4. User rage-clicks "Pay Now" 3x          → POST /api/payments x3 (all fail)
+5. User abandons                          → Session end
+
+🔗 Clicking the error in replay → opens the exact PurePath trace
+🔗 Clicking the trace → shows DB pool saturation at that moment
+```
+
+**DQL for Session Replay analysis:**
+
+```dql
+// Sessions with errors (candidates for replay review)
+fetch usersessions
+| filter totalErrorCount > 0
+| summarize sessions = count(),
+    avg_errors = avg(totalErrorCount),
+    avg_duration = avg(duration),
+    by:{city, os, browser}
+| sort sessions desc
+
+// Rage click detection (frustrated users)
+fetch useraction
+| filter type == "RAGE_CLICK"
+| summarize rage_clicks = count(), by:{name, application}
+| sort rage_clicks desc
+| limit 20
+
+// Sessions with high load time (slow experience)
+fetch usersessions
+| filter totalLoadTime > 5000  // >5s load
+| fields sessionId, userType, city, totalLoadTime, totalErrorCount
+| sort totalLoadTime desc
+| limit 30
+
+// Conversion funnel with drop-off analysis
+fetch useraction
+| filter application == "Payment Portal"
+| summarize users = countDistinct(usersession.internalUserId),
+    by:{name}
+| filter name in ("Open Payment Page", "Fill Payment Form",
+    "Click Pay", "Payment Confirmed")
+
+// Error sessions by geography (find region-specific issues)
+fetch usersessions
+| filter totalErrorCount > 0 AND hasReplay == true
+| summarize error_sessions = count(), by:{country, region}
+| sort error_sessions desc
+```
+
+---
+
+## New Dynatrace Features (2024-2025)
+
+### Grail — Unified Data Lakehouse
+
+Grail is Dynatrace's massively parallel data lakehouse that unifies **all** observability data under a single query engine (DQL).
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        GRAIL ARCHITECTURE                        │
+│                                                                  │
+│  Data Sources              Grail Engine          Query / Analyze │
+│  ┌──────────┐          ┌──────────────────┐    ┌──────────────┐ │
+│  │ Metrics   │────────→│                  │───→│ DQL Queries  │ │
+│  │ Logs      │────────→│  Unified Storage  │───→│ Dashboards   │ │
+│  │ Traces    │────────→│  + Indexing       │───→│ Notebooks    │ │
+│  │ Events    │────────→│                  │───→│ Alerts       │ │
+│  │ BizEvents │────────→│  Massively       │───→│ Davis AI     │ │
+│  │ Topology  │────────→│  Parallel        │───→│ AppEngine    │ │
+│  │ RUM       │────────→│  Processing      │───→│ Automations  │ │
+│  └──────────┘          └──────────────────┘    └──────────────┘ │
+│                                                                  │
+│  Key Capabilities:                                               │
+│  • No pre-aggregation needed — query raw data at any granularity │
+│  • Context-aware retention — hot/warm/cold tiers automatically   │
+│  • Schema-on-read — no upfront schema definition required        │
+│  • Petabyte-scale — handles enterprise-grade data volumes        │
+│  • Sub-second queries — massively parallel execution             │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Before Grail vs After Grail:**
+
+| Aspect | Before (Classic) | After (Grail) |
+|--------|-----------------|---------------|
+| Metrics storage | Fixed 5-min rollups | Raw resolution, any granularity |
+| Log storage | Limited retention, separate | Unlimited*, unified with traces |
+| Trace storage | PurePath (35 days) | Grail (configurable, context-aware) |
+| Query language | USQL (limited) | DQL (full SQL-like, powerful) |
+| Cross-signal queries | Not possible | `fetch logs \| join traces` |
+| Business events | Limited | First-class `bizevents` |
+| Topology data | Separate API | Queryable via DQL |
+
+### Notebooks — Collaborative Analysis
+
+Notebooks are Dynatrace's interactive analysis tool — think Jupyter Notebooks for observability:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  📓 NOTEBOOK: Payment Service Incident Analysis (Feb 2025)       │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  [Markdown Cell]                                                 │
+│  ## Incident Summary                                             │
+│  Payment service errors spiked at 14:23 UTC. Investigating      │
+│  root cause and blast radius.                                    │
+│                                                                  │
+│  [DQL Cell]                                                      │
+│  fetch logs                                                      │
+│  | filter dt.entity.service == "payment-svc"                     │
+│  | filter loglevel == "ERROR"                                    │
+│  | makeTimeseries count(), interval:5m                           │
+│  ──→ 📊 [Rendered chart showing error spike at 14:23]            │
+│                                                                  │
+│  [DQL Cell]                                                      │
+│  fetch spans                                                     │
+│  | filter dt.entity.service == "payment-svc"                     │
+│  | filter otel.status_code == "ERROR"                            │
+│  | summarize count(), by:{http.route}                            │
+│  ──→ 📊 [Bar chart: POST /api/payments = 94% of errors]         │
+│                                                                  │
+│  [Markdown Cell]                                                 │
+│  ## Root Cause                                                   │
+│  Connection pool exhaustion after partner-api latency spike      │
+│  caused thread starvation in payment-svc.                        │
+│                                                                  │
+│  ## Action Items                                                 │
+│  - [ ] Increase HikariCP pool from 20 to 50                     │
+│  - [ ] Add circuit breaker on partner-api calls                  │
+│  - [ ] Set connection timeout to 3s (currently 30s)              │
+│                                                                  │
+│  👥 Shared with: @sre-team @payment-team                         │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Use cases for Notebooks:**
+- **Incident investigation** — Step-by-step analysis with live DQL queries
+- **Post-mortems** — Document findings with embedded charts and data
+- **Knowledge sharing** — Reusable runbooks for common issues
+- **Capacity planning** — Interactive resource trend analysis
+- **Business reviews** — Mix technical metrics with business KPIs
+
+### Davis CoPilot — Natural Language to DQL
+
+Davis CoPilot lets engineers query Dynatrace using natural language, which is then converted to DQL:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  DAVIS COPILOT                                                   │
+│                                                                  │
+│  You: "Show me the top 5 slowest API endpoints in the           │
+│        payment service over the last hour"                       │
+│                                                                  │
+│  Davis CoPilot generates:                                        │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ fetch spans, from:now()-1h                                 │  │
+│  │ | filter dt.entity.service == "payment-svc"                │  │
+│  │ | filter span.kind == "SERVER"                             │  │
+│  │ | summarize p95 = percentile(duration, 95),                │  │
+│  │     count = count(),                                       │  │
+│  │     by:{http.route, http.request.method}                   │  │
+│  │ | sort p95 desc                                            │  │
+│  │ | limit 5                                                  │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  You: "Now compare this to last week"                           │
+│                                                                  │
+│  Davis CoPilot: Adds a join with from:now()-1w, to:now()-1w+1h  │
+│  and shows a comparison table.                                   │
+│                                                                  │
+│  You: "Create an alert if any endpoint P95 exceeds 2 seconds"  │
+│                                                                  │
+│  Davis CoPilot: Generates SLO definition + alert configuration   │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**What Davis CoPilot can do:**
+- Convert natural language → DQL queries
+- Explain existing DQL queries in plain English
+- Suggest dashboard tiles based on your question
+- Generate alert configurations from plain requirements
+- Summarize incidents with root cause context
+
+### AppEngine — Custom Dynatrace Apps
+
+Dynatrace AppEngine lets you build custom applications that run inside the Dynatrace platform:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  DYNATRACE APPENGINE                                             │
+│                                                                  │
+│  Build custom apps using:                                        │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │  React + TypeScript   (frontend)                           │  │
+│  │  Dynatrace SDK        (API access, DQL, Grail, topology)  │  │
+│  │  Strato Components    (Dynatrace design system)            │  │
+│  │  Serverless Functions  (backend logic)                     │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  Example Custom Apps:                                            │
+│  ┌────────────────────────────────────────────────────────────┐  │
+│  │ 📊 Release Validation    — Auto-compare metrics pre/post   │  │
+│  │ 🏦 Banking Compliance    — Custom compliance dashboard     │  │
+│  │ 💰 FinOps Dashboard      — Cloud cost + performance view   │  │
+│  │ 🔒 Security Posture      — Vulnerability + runtime data    │  │
+│  │ 📋 SLO Management Portal — Team-level SLO tracking         │  │
+│  │ 🎫 Incident Management   — Custom workflow + integrations  │  │
+│  └────────────────────────────────────────────────────────────┘  │
+│                                                                  │
+│  Deployment:                                                     │
+│  $ npx @dynatrace/create-app@latest my-app                      │
+│  $ cd my-app && npm run start    # Local dev                     │
+│  $ npx dt-app deploy             # Deploy to Dynatrace           │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Automations (Workflows)
+
+Dynatrace Automations let you build event-driven workflows that execute automatically:
+
+```yaml
+# Example: Auto-remediation workflow
+trigger:
+  type: davis-problem
+  filter:
+    category: "AVAILABILITY"
+    entity.type: "SERVICE"
+
+actions:
+  - name: Gather context
+    action: dynatrace.query
+    input:
+      dql: |
+        fetch logs, from:now()-15m
+        | filter dt.entity.service == "{{ event.entity.id }}"
+        | filter loglevel == "ERROR"
+        | summarize count(), by:{content}
+        | sort count desc | limit 5
+
+  - name: Check if safe to restart
+    action: dynatrace.query
+    input:
+      dql: |
+        fetch metrics
+        | filter metric.key == "dt.kubernetes.pod.count"
+        | filter dt.entity.service == "{{ event.entity.id }}"
+        | summarize pods = last(value)
+
+  - name: Restart pod if multiple replicas
+    condition: "{{ steps.check_if_safe_to_restart.result.pods > 1 }}"
+    action: dynatrace.webhook
+    input:
+      url: "https://k8s-api/restart/{{ event.entity.name }}"
+      method: POST
+
+  - name: Notify team
+    action: dynatrace.slack
+    input:
+      channel: "#incidents"
+      message: |
+        🔄 Auto-remediation executed for {{ event.entity.name }}
+        Problem: {{ event.title }}
+        Action: Pod restart ({{ steps.check_if_safe_to_restart.result.pods }} replicas)
+        Top errors: {{ steps.gather_context.result }}
+```
+
+**Common automation use cases:**
+| Use Case | Trigger | Action |
+|----------|---------|--------|
+| Auto-restart unhealthy pods | Davis problem (availability) | K8s API call |
+| Scale-up on load spike | Metric threshold | Cloud scaling API |
+| Incident creation | Davis problem (any) | Jira/ServiceNow ticket |
+| Deployment validation | Custom event (deploy) | DQL comparison queries |
+| SLO breach notification | SLO error budget < 20% | Slack + PagerDuty |
+| Cost anomaly alert | Cloud cost spike > 30% | Email + Jira |
+
+### Feature Summary Table
+
+| Feature | Purpose | Available Since | Key Benefit |
+|---------|---------|----------------|-------------|
+| **Grail** | Unified data lakehouse | 2023 (GA) | Query everything with DQL |
+| **Notebooks** | Interactive analysis | 2023 | Collaborative incident investigation |
+| **Davis CoPilot** | Natural language → DQL | 2024 | Lower barrier to observability |
+| **AppEngine** | Custom Dynatrace apps | 2023 | Extend platform for your use cases |
+| **Automations** | Event-driven workflows | 2024 | Auto-remediation, zero-touch ops |
+| **Session Replay** | User session playback | 2020 (enhanced 2024) | See exactly what users experienced |
+| **Ownership** | Service ownership tracking | 2024 | Clear accountability for services |
+| **Vulnerability Analytics** | Runtime CVE detection | 2023 | Security + observability combined |
+
+---
+
 ## Anti-Patterns
 
 | Anti-Pattern | Problem | Solution |
@@ -1666,12 +2660,23 @@ Davis AI Alert Example:
 - [ ] Runbooks linked to alerts
 - [ ] Alert deduplication enabled
 
+### Session Replay & RUM
+- [ ] RUM JavaScript tag deployed on all web apps
+- [ ] Session Replay enabled with appropriate masking level
+- [ ] Sensitive fields masked with `dtPrivacyMask` CSS class
+- [ ] Session recording cost control configured (% of sessions)
+- [ ] Mobile SDK integrated for native app replay
+- [ ] Rage click detection enabled for frustration analysis
+- [ ] Conversion funnels defined for key user journeys
+
 ### Operations
 - [ ] Deployment events sent to Dynatrace (for correlation)
 - [ ] Synthetic monitors for critical user journeys
 - [ ] Regular dashboard review (remove stale, add missing)
 - [ ] On-call team has Dynatrace access and training
-- [ ] Post-incident reviews use Dynatrace data
+- [ ] Post-incident reviews use Dynatrace data (Notebooks)
+- [ ] Automations configured for common remediation scenarios
+- [ ] Davis CoPilot enabled for the team
 
 ---
 
