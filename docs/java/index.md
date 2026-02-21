@@ -197,7 +197,14 @@
   - Connection Pooling
 
 ## Message Brokers & Event Streaming
-- Apache Kafka
+- **[Apache Kafka — Patterns, Anti-Patterns & Real-World Use Cases](kafka.md)**
+  - Producer patterns (idempotent, transactional, outbox)
+  - Consumer patterns (DLQ, idempotent consumer, parallel processing)
+  - Kafka Streams (windowing, joins, aggregations)
+  - Event-driven architecture (Saga, CQRS, event sourcing, CDC)
+  - Spring Kafka integration with production configs
+  - Real-world use cases from Netflix, Uber, LinkedIn, Spotify, Stripe, Airbnb, Walmart
+  - Performance tuning, monitoring, and 10 anti-patterns to avoid
 - RabbitMQ
 - Apache Pulsar
 - Event-Driven Architecture

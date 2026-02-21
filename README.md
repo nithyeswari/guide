@@ -116,6 +116,7 @@ docs/
 | **APIs** | [RESTful Design](docs/java/api.md), [GraphQL](docs/java/graphql.md), [Idempotency](docs/java/idempotency.md), [Apigee](docs/java/apigee.md) |
 | **Security** | [Security Patterns](docs/java/security.md), [Microservices Security](docs/java/microservices-security.md), [Data Masking](docs/java/masking.md) |
 | **Data** | [Redis](docs/java/redis.md), [Hazelcast](docs/java/hazelcast.md), [Spanner Dynamic Queries](docs/java/query/spanner-dynamic.md) |
+| **Kafka** | [Kafka Patterns & Anti-Patterns](docs/java/kafka.md) — Producers, consumers, streams, DLQ, industry use cases |
 
 ### Frontend (React + TypeScript)
 
