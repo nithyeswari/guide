@@ -181,6 +181,7 @@ This resource guide is complemented by detailed architecture guides:
 
 | Guide | Focus |
 |-------|-------|
+| **[System Design — Complete Reference](system-design.md)** | Scalability, databases, caching, consistency, real-world designs, interview framework |
 | **[Microservices Patterns & Anti-Patterns](microservices.md)** | Design patterns, communication, data management, resilience, service mesh, migration |
 | **[Cloud-Native Architecture (AWS/Azure/GCP)](cloud-native.md)** | Multi-cloud service mapping, compute, data, networking, IaC, security |
 | **[AI-Native Architecture](ai-native.md)** | RAG, agents, MLOps, GenAI patterns, LLM evaluation, responsible AI |

@@ -91,6 +91,7 @@ docs/
 │   ├── microservices.md            # Microservices patterns & anti-patterns
 │   ├── cloud-native.md             # Cloud-native — AWS, Azure, GCP
 │   ├── ai-native.md                # AI-native patterns & anti-patterns
+│   ├── system-design.md            # Complete system design reference
 │   └── cross-cutting-concerns.md   # Logging, tracing, observability
 ├── full-stack/                     # Full stack patterns and integration
 ├── mobile/                         # Mobile development (React Native, Android, Flutter)
@@ -140,6 +141,7 @@ docs/
 
 | Area | Topics |
 |------|--------|
+| **System Design** | [Complete Reference](docs/architecture/system-design.md) — Scalability, databases, caching, real-world designs |
 | **Microservices** | [Patterns & Anti-Patterns](docs/architecture/microservices.md) — Saga, CQRS, service mesh, decomposition |
 | **Cloud-Native** | [AWS, Azure, GCP](docs/architecture/cloud-native.md) — Kubernetes, serverless, IaC, multi-cloud mapping |
 | **AI-Native** | [AI Patterns](docs/architecture/ai-native.md) — RAG, agents, MLOps, GenAI architecture |
