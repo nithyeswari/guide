@@ -164,16 +164,25 @@
 - Zero Trust Architecture
 
 ## Observability
+- **[Dynatrace — Monitoring, Logging & Dashboards](dynatrace.md)**
+  - Auto-instrumentation with OneAgent
+  - Custom metrics with Micrometer integration
+  - Dashboard design (platform overview, service, Kafka, business KPIs)
+  - Working dashboard examples with ASCII layouts and DQL queries
+  - SLO-based alerting and error budget burn rates
+  - Structured logging with trace correlation
+  - Kubernetes monitoring with Dynatrace Operator
+  - Dashboard-as-code via API automation
 - **Logging**
   - Log4j2
   - Logback
   - ELK Stack
-  
+
 - **Metrics**
   - Micrometer
   - Prometheus
   - Grafana
-  
+
 - **Tracing**
   - OpenTelemetry
   - Jaeger
