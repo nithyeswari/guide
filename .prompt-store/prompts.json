@@ -1,0 +1,126 @@
+{
+  "version": 2,
+  "lastModified": "2026-02-21T21:07:13.045Z",
+  "prompts": [
+    {
+      "id": "823822cc-dcbd-40b2-a605-bb6ccf91f3e6",
+      "title": "can you rewrite this repo to have proper structure",
+      "content": "can you rewrite this repo to have proper structure",
+      "category": "CLI Prompts",
+      "tags": [
+        "auto-captured",
+        "claude-code"
+      ],
+      "metadata": {},
+      "embedding": null,
+      "createdAt": "2026-02-20T22:02:11.414Z",
+      "updatedAt": "2026-02-20T22:02:11.414Z",
+      "sourceId": null,
+      "sourceVersion": null,
+      "localVersion": 1,
+      "syncStatus": "local-only",
+      "usageCount": 0,
+      "lastUsedAt": null
+    },
+    {
+      "id": "cd395ef2-4cd5-4800-935e-3c75fad120e2",
+      "title": "update with latest trends, links and podcast.Best practice, whitepaper and indus...",
+      "content": "update with latest trends, links and podcast.Best practice, whitepaper and industry trends, Include Scala , Java and Go, Python",
+      "category": "CLI Prompts",
+      "tags": [
+        "auto-captured",
+        "claude-code"
+      ],
+      "metadata": {},
+      "embedding": null,
+      "createdAt": "2026-02-21T10:57:10.995Z",
+      "updatedAt": "2026-02-21T10:57:10.995Z",
+      "sourceId": null,
+      "sourceVersion": null,
+      "localVersion": 1,
+      "syncStatus": "local-only",
+      "usageCount": 0,
+      "lastUsedAt": null
+    },
+    {
+      "id": "87614393-d10e-4f9d-a4e3-e88847f6d9c1",
+      "title": "update for links, podcast and youtube conferences, and best practice and standar...",
+      "content": "update for links, podcast and youtube conferences, and best practice and standard. please include go, scala, python and java and any new languages which a full stack engineer need to be aware. In architecture include micriservice, cloud native , ai native patterns and anti pattentns, aws, azure and gcp",
+      "category": "CLI Prompts",
+      "tags": [
+        "auto-captured",
+        "claude-code"
+      ],
+      "metadata": {},
+      "embedding": null,
+      "createdAt": "2026-02-21T11:15:38.267Z",
+      "updatedAt": "2026-02-21T11:15:38.267Z",
+      "sourceId": null,
+      "sourceVersion": null,
+      "localVersion": 1,
+      "syncStatus": "local-only",
+      "usageCount": 0,
+      "lastUsedAt": null
+    },
+    {
+      "id": "9396c625-866f-4a95-9542-28ae3b2b4f59",
+      "title": "add about kafka patterns andtipatterns and bestpractices and real work use cases...",
+      "content": "add about kafka patterns andtipatterns and bestpractices and real work use cases from industry leaders",
+      "category": "CLI Prompts",
+      "tags": [
+        "auto-captured",
+        "claude-code"
+      ],
+      "metadata": {},
+      "embedding": null,
+      "createdAt": "2026-02-21T18:29:24.797Z",
+      "updatedAt": "2026-02-21T18:29:24.797Z",
+      "sourceId": null,
+      "sourceVersion": null,
+      "localVersion": 1,
+      "syncStatus": "local-only",
+      "usageCount": 0,
+      "lastUsedAt": null
+    },
+    {
+      "id": "ce2a3a64-d3d8-41a6-85da-ef538ff48db8",
+      "title": "is thera ny repo i can get dql reference ? and can you add dql payemnst and bene...",
+      "content": "is thera ny repo i can get dql reference ? and can you add dql payemnst and beneficand copcheck with dre?",
+      "category": "CLI Prompts",
+      "tags": [
+        "auto-captured",
+        "claude-code"
+      ],
+      "metadata": {},
+      "embedding": null,
+      "createdAt": "2026-02-21T19:42:15.963Z",
+      "updatedAt": "2026-02-21T19:42:15.963Z",
+      "sourceId": null,
+      "sourceVersion": null,
+      "localVersion": 1,
+      "syncStatus": "local-only",
+      "usageCount": 0,
+      "lastUsedAt": null
+    },
+    {
+      "id": "f416e5fa-0453-4f47-ac2b-7f73f4a4cb91",
+      "title": "I need more practical dashboard for troble shooting and how does the new new fea...",
+      "content": "I need more practical dashboard for troble shooting and how does the new new feature like replay works?",
+      "category": "CLI Prompts",
+      "tags": [
+        "auto-captured",
+        "claude-code"
+      ],
+      "metadata": {},
+      "embedding": null,
+      "createdAt": "2026-02-21T21:07:13.044Z",
+      "updatedAt": "2026-02-21T21:07:13.044Z",
+      "sourceId": null,
+      "sourceVersion": null,
+      "localVersion": 1,
+      "syncStatus": "local-only",
+      "usageCount": 0,
+      "lastUsedAt": null
+    }
+  ]
+}

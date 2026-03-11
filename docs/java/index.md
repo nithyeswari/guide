@@ -90,19 +90,31 @@
   - Dependency Injection
   - AOP
   - Configuration
-  
+
 - **Spring Boot**
   - Auto-configuration
   - Actuator
   - Profiles
   - Properties Management
-  
+
 - **Spring Cloud**
   - Config Server
   - Service Discovery (Eureka)
   - Circuit Breaker (Resilience4j)
   - API Gateway
   - Distributed Tracing
+
+## Quarkus
+- **[Quarkus RESTEasy Reactive — Header Propagation, Internals & Spring Boot Comparison](quarkus.md)**
+  - RESTEasy Reactive internal pipeline and architecture
+  - Why `incomingHeaders` is empty in `ClientHeadersFactory` — diagnosis and root cause
+  - `@NameBinding` filters vs CDI `@Interceptor` — when to use which
+  - Bridge Bean pattern, Vert.x injection, `ReactiveClientHeadersFactory`
+  - Side-by-side comparison with Spring Boot MVC, WebFlux, and OpenFeign
+  - CDI ArC container internals vs Spring DI
+  - Build-time processing, extension system, Dev Services
+  - Industry-standard header propagation for financial services
+  - Anti-patterns and testing strategies
 
 ## Cloud Native Patterns
 - Circuit Breaker

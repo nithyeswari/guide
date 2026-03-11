@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "Bash(tree:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
+      "Bash(while read d)",
+      "Bash(do:*)",
+      "Bash(done)",
+      "Bash(git add:*)",
+      "Bash(cd:*)",
+      "Bash(^d \")",
+      "Bash(ls:*)",
+      "WebSearch"
     ],
     "deny": [],
     "ask": []
