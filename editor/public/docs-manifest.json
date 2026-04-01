@@ -1,0 +1,860 @@
+{
+  "tree": [
+    {
+      "name": "guides",
+      "open": true,
+      "children": [
+        {
+          "name": "Getting Started with the Full Stack Engineering Guide",
+          "path": "getting-started.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "ai",
+      "open": false,
+      "children": [
+        {
+          "name": "Computer Vision in Finance",
+          "path": "ai/computer-vision.md",
+          "type": "md"
+        },
+        {
+          "name": "AI Roles: Skills, Courses & Resources Guide",
+          "path": "ai/jobs.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "api",
+      "open": false,
+      "children": [
+        {
+          "name": "index",
+          "path": "api/catalog/index.html",
+          "type": "html"
+        },
+        {
+          "name": "upload",
+          "path": "api/catalog/upload.html",
+          "type": "html"
+        },
+        {
+          "name": "Comprehensive API Development Guide",
+          "path": "api/index.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "architecture",
+      "open": false,
+      "children": [
+        {
+          "name": "AI-Native Architecture — Patterns & Anti-Patterns",
+          "path": "architecture/ai-native.md",
+          "type": "md"
+        },
+        {
+          "name": "Cloud Native Architecture — AWS, Azure, GCP",
+          "path": "architecture/cloud-native.md",
+          "type": "md"
+        },
+        {
+          "name": "Cross-Cutting Concerns",
+          "path": "architecture/cross-cutting-concerns.md",
+          "type": "md"
+        },
+        {
+          "name": "Application Architect's Comprehensive Resource Guide",
+          "path": "architecture/index.md",
+          "type": "md"
+        },
+        {
+          "name": "Microservices Architecture — Patterns & Anti-Patterns",
+          "path": "architecture/microservices.md",
+          "type": "md"
+        },
+        {
+          "name": "System Design — Complete Reference",
+          "path": "architecture/system-design.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "banking",
+      "open": false,
+      "children": [
+        {
+          "name": "Banking Industry Standards and Frameworks",
+          "path": "banking/index.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "full-stack",
+      "open": false,
+      "children": [
+        {
+          "name": "Engineering Blogs Collection",
+          "path": "full-stack/blog.md",
+          "type": "md"
+        },
+        {
+          "name": "Java Cloud Native Development Guide",
+          "path": "full-stack/cloud.md",
+          "type": "md"
+        },
+        {
+          "name": "Payment System Security Architecture",
+          "path": "full-stack/e2e-security.md",
+          "type": "md"
+        },
+        {
+          "name": "Full Stack Development Resources & Links",
+          "path": "full-stack/full-stack.md",
+          "type": "md"
+        },
+        {
+          "name": "index",
+          "path": "full-stack/index.md",
+          "type": "md"
+        },
+        {
+          "name": "Industry Leaders' Key Repositories",
+          "path": "full-stack/industry-leaders.md",
+          "type": "md"
+        },
+        {
+          "name": "Full Stack Tech Lead & Architecture Guide",
+          "path": "full-stack/lead-engineer.md",
+          "type": "md"
+        },
+        {
+          "name": "Comprehensive Microservices Resources & Links",
+          "path": "full-stack/microservices.md",
+          "type": "md"
+        },
+        {
+          "name": "Popular Open Source Projects",
+          "path": "full-stack/open-source.md",
+          "type": "md"
+        },
+        {
+          "name": "Full Stack Flow Diagram Guide & Industry Patterns",
+          "path": "full-stack/patterns.md",
+          "type": "md"
+        },
+        {
+          "name": "🌟 Top GitHub Repositories for Design Patterns",
+          "path": "full-stack/repositories.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "go",
+      "open": false,
+      "children": [
+        {
+          "name": "Go (Golang) — Full Stack Engineer's Guide",
+          "path": "go/index.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "java",
+      "open": false,
+      "children": [
+        {
+          "name": "Address Parser",
+          "path": "java/address-parser.md",
+          "type": "md"
+        },
+        {
+          "name": "OpenAPI Mock Server",
+          "path": "java/api-mocker/api-mocker.md",
+          "type": "md"
+        },
+        {
+          "name": "api spec",
+          "path": "java/api-mocker/api-spec.yaml",
+          "type": "yaml"
+        },
+        {
+          "name": "application",
+          "path": "java/api-mocker/merge-openapi/application.properties",
+          "type": "properties"
+        },
+        {
+          "name": "OpenAPI Merger for Spring Boot",
+          "path": "java/api-mocker/merge-openapi/readme.md",
+          "type": "md"
+        },
+        {
+          "name": "OpenAPI Mock Server",
+          "path": "java/api-mocker/mocker.md",
+          "type": "md"
+        },
+        {
+          "name": "pom",
+          "path": "java/api-mocker/pom.xml",
+          "type": "xml"
+        },
+        {
+          "name": "Comprehensive API Development Guide",
+          "path": "java/api.md",
+          "type": "md"
+        },
+        {
+          "name": "Apogee API Implementation Guide",
+          "path": "java/apigee.md",
+          "type": "md"
+        },
+        {
+          "name": "Java Backend Implementation Patterns & Strategies",
+          "path": "java/backend-patterns.md",
+          "type": "md"
+        },
+        {
+          "name": "blig search",
+          "path": "java/blig-search.java",
+          "type": "java"
+        },
+        {
+          "name": "bump",
+          "path": "java/bump.md",
+          "type": "md"
+        },
+        {
+          "name": "Smart Cache System - Complete Implementation Guide",
+          "path": "java/cached.md",
+          "type": "md"
+        },
+        {
+          "name": "Spring Boot Caching with Caffeine",
+          "path": "java/caching.md",
+          "type": "md"
+        },
+        {
+          "name": "Header Context Propagation with Micrometer",
+          "path": "java/context-propagation.md",
+          "type": "md"
+        },
+        {
+          "name": "list",
+          "path": "java/cross-cutting/list.csv",
+          "type": "csv"
+        },
+        {
+          "name": "cross cutting",
+          "path": "java/cross-cutting.md",
+          "type": "md"
+        },
+        {
+          "name": "Java Data Structures & Algorithms - Complete Interview Preparation Guide",
+          "path": "java/dsa.md",
+          "type": "md"
+        },
+        {
+          "name": "Java Object Mapping Guide",
+          "path": "java/dynamic-model.md",
+          "type": "md"
+        },
+        {
+          "name": "Dynatrace — Monitoring, Logging & Dashboards for Microservices",
+          "path": "java/dynatrace.md",
+          "type": "md"
+        },
+        {
+          "name": "forward headers",
+          "path": "java/forward-headers.md",
+          "type": "md"
+        },
+        {
+          "name": "Dynamic Spanner Querying Approaches",
+          "path": "java/graphql.md",
+          "type": "md"
+        },
+        {
+          "name": "Dynamic Mapping System with Hazelcast",
+          "path": "java/hazelcast.md",
+          "type": "md"
+        },
+        {
+          "name": "header",
+          "path": "java/header.java",
+          "type": "java"
+        },
+        {
+          "name": "Spring Boot Header Processing",
+          "path": "java/headers.md",
+          "type": "md"
+        },
+        {
+          "name": "Spring Boot Nonce Implementation with Gradle",
+          "path": "java/idempotency.md",
+          "type": "md"
+        },
+        {
+          "name": "Java Cloud Native Development Guide",
+          "path": "java/index.md",
+          "type": "md"
+        },
+        {
+          "name": "Quarkus — JVM, Memory & Storage",
+          "path": "java/jvm-memory-storage.html",
+          "type": "html"
+        },
+        {
+          "name": "Apache Kafka — Patterns, Anti-Patterns & Real-World Use Cases",
+          "path": "java/kafka.md",
+          "type": "md"
+        },
+        {
+          "name": "masking",
+          "path": "java/masking.md",
+          "type": "md"
+        },
+        {
+          "name": "Securing Microservices: A Comprehensive Guide",
+          "path": "java/microservices-security.md",
+          "type": "md"
+        },
+        {
+          "name": "Comprehensive Guide to Model Mapping in Spring Boot Microservices",
+          "path": "java/model-mapper/comprehensive.md",
+          "type": "md"
+        },
+        {
+          "name": "model with transformation",
+          "path": "java/model-mapper/model-with-transformation.json",
+          "type": "json"
+        },
+        {
+          "name": "model",
+          "path": "java/model-mapper/model.json",
+          "type": "json"
+        },
+        {
+          "name": "Object Mapping",
+          "path": "java/object-mapping.md",
+          "type": "md"
+        },
+        {
+          "name": "pom",
+          "path": "java/pom.xml",
+          "type": "xml"
+        },
+        {
+          "name": "process headers",
+          "path": "java/process-headers.java",
+          "type": "java"
+        },
+        {
+          "name": "Quarkus vs Spring Boot — Complete Engineering Reference",
+          "path": "java/quarkus.md",
+          "type": "md"
+        },
+        {
+          "name": "Spanner Dynamic Query and Data Model System",
+          "path": "java/query/spanner-dynamic.md",
+          "type": "md"
+        },
+        {
+          "name": "Spring Boot Application with Redis Sidecar Cache",
+          "path": "java/redis.md",
+          "type": "md"
+        },
+        {
+          "name": "response",
+          "path": "java/response.md",
+          "type": "md"
+        },
+        {
+          "name": "Security Architecture Patterns Guide",
+          "path": "java/security.md",
+          "type": "md"
+        },
+        {
+          "name": "Spring Boot Project Patterns Guide",
+          "path": "java/spring-boot.md",
+          "type": "md"
+        },
+        {
+          "name": "JSP Variable Validation Guide",
+          "path": "java/static-analysis.md",
+          "type": "md"
+        },
+        {
+          "name": "Spring Boot Testing Guide",
+          "path": "java/testing.md",
+          "type": "md"
+        },
+        {
+          "name": "Java 21 Validation Library",
+          "path": "java/validation-library.md",
+          "type": "md"
+        },
+        {
+          "name": "Spring Boot WebClient: Best Practices",
+          "path": "java/webclient.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "javascript",
+      "open": false,
+      "children": [
+        {
+          "name": "JavaScript Development Guide",
+          "path": "javascript/index.md",
+          "type": "md"
+        },
+        {
+          "name": "Spanner Dynamic Query Generator",
+          "path": "javascript/query.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "kids",
+      "open": false,
+      "children": [
+        {
+          "name": "Educational and Environmental Games Guide",
+          "path": "kids/games.md",
+          "type": "md"
+        },
+        {
+          "name": "KS3 Year 8 Study Guide & Resource Collection",
+          "path": "kids/secondary/year8.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "languages",
+      "open": false,
+      "children": [
+        {
+          "name": "Languages Overview — What Full Stack Engineers Should Know",
+          "path": "languages/index.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "mobile",
+      "open": false,
+      "children": [
+        {
+          "name": "Jetpack Compose: From Novice to Expert",
+          "path": "mobile/advanced.md",
+          "type": "md"
+        },
+        {
+          "name": "Android UI Development: Comparing Frameworks",
+          "path": "mobile/android.md",
+          "type": "md"
+        },
+        {
+          "name": "flutter",
+          "path": "mobile/flutter.html",
+          "type": "html"
+        },
+        {
+          "name": "Mobile Development Guide",
+          "path": "mobile/index.md",
+          "type": "md"
+        },
+        {
+          "name": "Jetpack Compose: From Novice to Expert",
+          "path": "mobile/jetpack.md",
+          "type": "md"
+        },
+        {
+          "name": "React Native Development Guide",
+          "path": "mobile/react-native.md",
+          "type": "md"
+        },
+        {
+          "name": "reactnative legacy",
+          "path": "mobile/reactnative-legacy.html",
+          "type": "html"
+        },
+        {
+          "name": "WebView Implementation Guide",
+          "path": "mobile/webview.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "python",
+      "open": false,
+      "children": [
+        {
+          "name": "Python — Full Stack Engineer's Guide",
+          "path": "python/index.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "quality-engineering",
+      "open": false,
+      "children": [
+        {
+          "name": "User Action Recorder - Setup and Usage Guide",
+          "path": "quality-engineering/bdd.md",
+          "type": "md"
+        },
+        {
+          "name": "Code Review Guide",
+          "path": "quality-engineering/code-review.md",
+          "type": "md"
+        },
+        {
+          "name": "Comprehensive Software Testing Guide",
+          "path": "quality-engineering/index.md",
+          "type": "md"
+        },
+        {
+          "name": "QE Mobile Engineer Resources",
+          "path": "quality-engineering/mobile.md",
+          "type": "md"
+        },
+        {
+          "name": "Automated Testing Framework with Playwright",
+          "path": "quality-engineering/playwright.md",
+          "type": "md"
+        },
+        {
+          "name": "Effective Code Review: The Ultimate Resource Guide",
+          "path": "quality-engineering/review.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "react",
+      "open": false,
+      "children": [
+        {
+          "name": "React Application Documentation",
+          "path": "react/application.md",
+          "type": "md"
+        },
+        {
+          "name": "React Basics",
+          "path": "react/basics.md",
+          "type": "md"
+        },
+        {
+          "name": "React Performance Optimization Guide",
+          "path": "react/code-optimization.md",
+          "type": "md"
+        },
+        {
+          "name": "UI Patterns Comparison: When to Use What",
+          "path": "react/compare-dynamic.md",
+          "type": "md"
+        },
+        {
+          "name": "React Best Practices and Industry Patterns Guide",
+          "path": "react/design-patterns.md",
+          "type": "md"
+        },
+        {
+          "name": "Dynamic Form Generation in React using JSON Configuration",
+          "path": "react/dynamic-form.md",
+          "type": "md"
+        },
+        {
+          "name": "React Form Libraries for Dynamic Form Generation",
+          "path": "react/dynamic-static.md",
+          "type": "md"
+        },
+        {
+          "name": "embeddings",
+          "path": "react/dynamic-ui/embeddings.md",
+          "type": "md"
+        },
+        {
+          "name": "Comprehensive Guide to Model Mapping in Spring Boot Microservices",
+          "path": "react/dynamic-ui/model-from-yaml.md",
+          "type": "md"
+        },
+        {
+          "name": "MosaicUI Framework",
+          "path": "react/dynamic-ui/mosaic-with-be.md",
+          "type": "md"
+        },
+        {
+          "name": "Schema-Driven UI Framework with Dynamic Navigation",
+          "path": "react/dynamic-ui/navigation.md",
+          "type": "md"
+        },
+        {
+          "name": "experience",
+          "path": "react/experience.md",
+          "type": "md"
+        },
+        {
+          "name": "Full Stack Engineering Resources",
+          "path": "react/fed.md",
+          "type": "md"
+        },
+        {
+          "name": "References and Similar Implementations",
+          "path": "react/form-generation.md",
+          "type": "md"
+        },
+        {
+          "name": "React Frontend Implementation Patterns & Strategies",
+          "path": "react/frontend-patterns.md",
+          "type": "md"
+        },
+        {
+          "name": "React Ecosystem Complete Documentation",
+          "path": "react/index.md",
+          "type": "md"
+        },
+        {
+          "name": "interceptor",
+          "path": "react/interceptor.md",
+          "type": "md"
+        },
+        {
+          "name": "jsp to react",
+          "path": "react/jsp-to-react.md",
+          "type": "md"
+        },
+        {
+          "name": "React Mastery Guide - From Beginner to Advanced",
+          "path": "react/knowledge.md",
+          "type": "md"
+        },
+        {
+          "name": "React 19 - Top 10 Latest Features",
+          "path": "react/latest.md",
+          "type": "md"
+        },
+        {
+          "name": "🚀 Modern React Development Tech Stack (2025)",
+          "path": "react/layers-react.md",
+          "type": "md"
+        },
+        {
+          "name": "🚀 Modern Web Development Tech Stack (2025)",
+          "path": "react/layers.md",
+          "type": "md"
+        },
+        {
+          "name": "Backend-Synced Shared Cache Service for Micro-frontends",
+          "path": "react/mfe/cache.md",
+          "type": "md"
+        },
+        {
+          "name": "State Sharing in Micro Frontends with Webpack Module Federation",
+          "path": "react/mfe/shareware.md",
+          "type": "md"
+        },
+        {
+          "name": "mfe dynamic load",
+          "path": "react/mfe-dynamic-load.md",
+          "type": "md"
+        },
+        {
+          "name": "Enterprise MFE Architecture with Product Monorepo",
+          "path": "react/micro-frontends.md",
+          "type": "md"
+        },
+        {
+          "name": "Next Page Navigation Pattern",
+          "path": "react/navigation.md",
+          "type": "md"
+        },
+        {
+          "name": "Next.js Server-Side Rendering: Complete Implementation Guide",
+          "path": "react/nextjs.md",
+          "type": "md"
+        },
+        {
+          "name": "package.perf scripts",
+          "path": "react/performance-configs/package.perf-scripts.json",
+          "type": "json"
+        },
+        {
+          "name": "React Performance Enforcement Toolkit",
+          "path": "react/performance-configs/performance.md",
+          "type": "md"
+        },
+        {
+          "name": "React Performance Enforcement Toolkit",
+          "path": "react/performance-configs/readme.md",
+          "type": "md"
+        },
+        {
+          "name": "React Performance Tuning Guide",
+          "path": "react/performance.md",
+          "type": "md"
+        },
+        {
+          "name": "React Complete Stack Guide 2024",
+          "path": "react/react-stack.md",
+          "type": "md"
+        },
+        {
+          "name": "Debt Consolidation Calculator",
+          "path": "react/reminder.html",
+          "type": "html"
+        },
+        {
+          "name": "compare",
+          "path": "react/rtk/compare.md",
+          "type": "md"
+        },
+        {
+          "name": "rtk",
+          "path": "react/rtk/rtk.md",
+          "type": "md"
+        },
+        {
+          "name": "test",
+          "path": "react/rtk/test.md",
+          "type": "md"
+        },
+        {
+          "name": "rtk overview",
+          "path": "react/rtk-overview.md",
+          "type": "md"
+        },
+        {
+          "name": "React SSR Design Patterns",
+          "path": "react/ssr-patterns.md",
+          "type": "md"
+        },
+        {
+          "name": "React State Management Guide",
+          "path": "react/state-management.md",
+          "type": "md"
+        },
+        {
+          "name": "🚀 Modern React Development Tech Stack (2025)",
+          "path": "react/tech-stack.md",
+          "type": "md"
+        },
+        {
+          "name": "techstack modern",
+          "path": "react/techstack-modern.html",
+          "type": "html"
+        },
+        {
+          "name": "Secure Token Management in React/Redux Applications",
+          "path": "react/token.md",
+          "type": "md"
+        },
+        {
+          "name": "reorder",
+          "path": "react/tools/dynamic-forms/reorder.md",
+          "type": "md"
+        },
+        {
+          "name": "Schema-Driven UI Framework",
+          "path": "react/tools/dynamic-forms/schema.md",
+          "type": "md"
+        },
+        {
+          "name": "Comprehensive Guide to React UI Patterns",
+          "path": "react/ui.md",
+          "type": "md"
+        },
+        {
+          "name": "React useTransition Guide",
+          "path": "react/use-transaction.md",
+          "type": "md"
+        },
+        {
+          "name": "web mobile",
+          "path": "react/web-mobile.md",
+          "type": "md"
+        },
+        {
+          "name": "Zustand vs MobX: Implementation Guide",
+          "path": "react/zustand-mobx.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "resources",
+      "open": false,
+      "children": [
+        {
+          "name": "Engineering Resources — Podcasts, YouTube, Conferences & Links",
+          "path": "resources/index.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "scala",
+      "open": false,
+      "children": [
+        {
+          "name": "Scala — Full Stack Engineer's Guide",
+          "path": "scala/index.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "security",
+      "open": false,
+      "children": [
+        {
+          "name": "Spring Boot Security Dashboard",
+          "path": "security/cve-sample.html",
+          "type": "html"
+        },
+        {
+          "name": "cve viewer",
+          "path": "security/cve-viewer.html",
+          "type": "html"
+        },
+        {
+          "name": "CVEs and Best Practices",
+          "path": "security/index.md",
+          "type": "md"
+        },
+        {
+          "name": "Shift Left Security Maturity Assessment Framework",
+          "path": "security/maturity-levels.md",
+          "type": "md"
+        }
+      ]
+    },
+    {
+      "name": "tools",
+      "open": false,
+      "children": [
+        {
+          "name": "Project Timeline Calculator",
+          "path": "tools/estimator.html",
+          "type": "html"
+        }
+      ]
+    }
+  ],
+  "generatedAt": "2026-03-31T16:21:13.660Z",
+  "totalFiles": 148
+}

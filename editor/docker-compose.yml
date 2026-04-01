@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  editor:
+    build:
+      context: ..
+      dockerfile: editor/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - NODE_ENV=development
+    volumes:
+      # Mount docs for live changes (read-only)
+      - ../docs:/app/docs:ro
+      # Mount frontend for live changes
+      - ./public:/app/public:ro
+      # Mount server for live changes
+      - ./server:/app/server:ro
+    restart: unless-stopped

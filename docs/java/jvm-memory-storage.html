@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quarkus — JVM, Memory & Storage</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #07090f;
+  --bg1:      #0c0f1a;
+  --bg2:      #111624;
+  --bg3:      #161d2e;
+  --bg4:      #1c2540;
+  --border:   #1e2a45;
+  --border2:  #2a3d60;
+  --cyan:     #00d4ff;
+  --cyan2:    #00a8cc;
+  --green:    #00ff9d;
+  --green2:   #00cc7d;
+  --yellow:   #ffd166;
+  --orange:   #ff8c42;
+  --red:      #ff4757;
+  --purple:   #a78bfa;
+  --text:     #ccd6f6;
+  --text2:    #8892b0;
+  --text3:    #495670;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'IBM Plex Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Grid scanline texture */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none; z-index:0;
+}
+
+.page { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:48px 32px 80px; }
+
+/* ── HEADER ── */
+.hero {
+  padding: 48px 0 56px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 64px;
+  position: relative;
+}
+
+.hero-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.hero-title {
+  font-family: var(--mono);
+  font-size: 48px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.hero-title em { color: var(--cyan); font-style: normal; }
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--text2);
+  max-width: 680px;
+  line-height: 1.7;
+}
+
+.hero-corner {
+  position: absolute;
+  top: 0; right: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* ── SECTION HEADERS ── */
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.sec-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.sec-title {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.sec-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+/* ── TOP DOWN DIAGRAM ── */
+.topdown {
+  margin-bottom: 80px;
+}
+
+.stack-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+.layer {
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 0;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.layer + .layer { margin-top: -1px; border-top-left-radius: 0; border-top-right-radius: 0; }
+.layer:not(:last-child) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.layer:first-child { border-top-left-radius: 10px; border-top-right-radius: 10px; }
+.layer:last-child { border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+
+.layer-inner {
+  display: flex;
+  align-items: stretch;
+  min-height: 72px;
+}
+
+.layer-accent {
+  width: 4px;
+  flex-shrink: 0;
+  transition: width 0.2s;
+}
+
+.layer:hover .layer-accent, .layer.open .layer-accent { width: 6px; }
+
+.layer-main {
+  flex: 1;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.layer-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  width: 36px;
+  text-align: center;
+}
+
+.layer-info { flex: 1; }
+
+.layer-name {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.layer-desc {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.layer-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+}
+
+.layer-arrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  padding: 0 16px;
+  transition: transform 0.2s;
+}
+
+.layer.open .layer-arrow { transform: rotate(180deg); color: var(--cyan); }
+
+/* Layer colours */
+.layer-app    { border-color: rgba(0,255,157,0.3); background: rgba(0,255,157,0.03); }
+.layer-app    .layer-accent { background: var(--green); }
+.layer-app    .layer-name   { color: var(--green); }
+.layer-app:hover, .layer-app.open { background: rgba(0,255,157,0.06); border-color: rgba(0,255,157,0.5); }
+
+.layer-quarkus { border-color: rgba(255,140,66,0.3); background: rgba(255,140,66,0.03); }
+.layer-quarkus .layer-accent { background: var(--orange); }
+.layer-quarkus .layer-name   { color: var(--orange); }
+.layer-quarkus:hover, .layer-quarkus.open { background: rgba(255,140,66,0.06); border-color: rgba(255,140,66,0.5); }
+
+.layer-jvm  { border-color: rgba(0,212,255,0.3); background: rgba(0,212,255,0.03); }
+.layer-jvm  .layer-accent { background: var(--cyan); }
+.layer-jvm  .layer-name   { color: var(--cyan); }
+.layer-jvm:hover, .layer-jvm.open { background: rgba(0,212,255,0.06); border-color: rgba(0,212,255,0.5); }
+
+.layer-os   { border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.03); }
+.layer-os   .layer-accent { background: var(--purple); }
+.layer-os   .layer-name   { color: var(--purple); }
+.layer-os:hover, .layer-os.open { background: rgba(167,139,250,0.06); border-color: rgba(167,139,250,0.5); }
+
+.layer-hw   { border-color: rgba(255,71,87,0.3); background: rgba(255,71,87,0.03); }
+.layer-hw   .layer-accent { background: var(--red); }
+.layer-hw   .layer-name   { color: var(--red); }
+.layer-hw:hover, .layer-hw.open { background: rgba(255,71,87,0.06); border-color: rgba(255,71,87,0.5); }
+
+/* Expandable detail panel */
+.layer-detail {
+  display: none;
+  padding: 0 20px 20px 60px;
+  border-top: 1px solid var(--border);
+  margin-top: 0;
+}
+
+.layer.open .layer-detail { display: block; }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.detail-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.detail-card-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  color: var(--cyan);
+}
+
+.detail-card p {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+/* ── MEMORY DEEP DIVE ── */
+.memory-section { margin-bottom: 80px; }
+
+.mem-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.mem-box {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.mem-box-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mem-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* Memory bar chart */
+.mem-bars { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+
+.mem-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mem-bar-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.mem-bar-track {
+  flex: 1;
+  height: 20px;
+  background: var(--bg3);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.mem-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  animation: barIn 1.2s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+@keyframes barIn {
+  from { width: 0 !important; }
+}
+
+.mem-bar-val {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── JVM INTERNALS DIAGRAM ── */
+.jvm-diagram {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  margin: 24px 0;
+  position: relative;
+}
+
+.jvm-diagram-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jvm-diagram-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border2);
+}
+
+.jvm-regions {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+}
+
+.jvm-region {
+  border: 1px solid;
+  border-radius: 8px;
+  padding: 14px;
+  position: relative;
+}
+
+.jvm-region-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.jvm-region-size {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.jvm-region-desc {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+/* Heap region */
+.region-heap {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  border-color: rgba(0,212,255,0.3);
+  background: rgba(0,212,255,0.04);
+}
+.region-heap .jvm-region-name { color: var(--cyan); }
+
+/* Heap sub-regions */
+.heap-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.heap-sub {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.heap-sub-name {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text2);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.heap-sub-val {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Metaspace */
+.region-meta {
+  grid-column: 2;
+  grid-row: 1;
+  border-color: rgba(255,209,102,0.3);
+  background: rgba(255,209,102,0.04);
+}
+.region-meta .jvm-region-name { color: var(--yellow); }
+.region-meta .jvm-region-size { color: var(--yellow); }
+
+/* Code Cache */
+.region-code {
+  grid-column: 3;
+  grid-row: 1;
+  border-color: rgba(167,139,250,0.3);
+  background: rgba(167,139,250,0.04);
+}
+.region-code .jvm-region-name { color: var(--purple); }
+.region-code .jvm-region-size { color: var(--purple); }
+
+/* Thread Stacks */
+.region-threads {
+  grid-column: 2;
+  grid-row: 2;
+  border-color: rgba(0,255,157,0.3);
+  background: rgba(0,255,157,0.04);
+}
+.region-threads .jvm-region-name { color: var(--green); }
+.region-threads .jvm-region-size { color: var(--green); }
+
+/* Native Memory */
+.region-native {
+  grid-column: 3;
+  grid-row: 2;
+  border-color: rgba(255,71,87,0.3);
+  background: rgba(255,71,87,0.04);
+}
+.region-native .jvm-region-name { color: var(--red); }
+.region-native .jvm-region-size { color: var(--red); }
+
+/* GC row */
+.region-gc {
+  grid-column: 1 / 4;
+  grid-row: 3;
+  border-color: rgba(255,140,66,0.3);
+  background: rgba(255,140,66,0.04);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.region-gc .jvm-region-name { color: var(--orange); margin-bottom: 0; }
+
+.gc-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.gc-chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 4px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gc-chip.active {
+  background: rgba(255,140,66,0.2);
+  border-color: var(--orange);
+  color: var(--orange);
+}
+
+.gc-chip:not(.active) {
+  border-color: var(--border2);
+  color: var(--text3);
+}
+
+.gc-chip:hover:not(.active) {
+  border-color: var(--text2);
+  color: var(--text2);
+}
+
+.gc-detail {
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.5;
+  max-width: 400px;
+}
+
+/* ── STORAGE DEEP DIVE ── */
+.storage-section { margin-bottom: 80px; }
+
+.build-outputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.output-box {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.output-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.output-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.output-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 3px;
+}
+
+.output-body { padding: 16px 20px; }
+
+/* File tree */
+.file-tree {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 2;
+  color: var(--text2);
+}
+
+.ft-dir { color: var(--cyan); }
+.ft-jar { color: var(--yellow); }
+.ft-bin { color: var(--green); }
+.ft-size {
+  float: right;
+  color: var(--text3);
+  font-size: 11px;
+}
+
+/* Size comparison */
+.size-compare {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 24px 0;
+}
+
+.size-compare-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.size-rows { display: flex; flex-direction: column; gap: 14px; }
+
+.size-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 1fr;
+  align-items: center;
+  gap: 16px;
+}
+
+.size-row-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.size-bar-wrap { position: relative; }
+
+.size-bar-bg {
+  height: 28px;
+  background: var(--bg3);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.size-bar {
+  height: 100%;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  animation: barIn 1.4s cubic-bezier(0.4,0,0.2,1) both;
+}
+
+/* ── COMPARISON TABLE ── */
+.compare-section { margin-bottom: 80px; }
+
+.compare-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr 1fr 1fr;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 24px 0;
+}
+
+.cg-cell {
+  background: var(--bg1);
+  padding: 14px 16px;
+  font-size: 13px;
+}
+
+.cg-header {
+  background: var(--bg2);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 16px;
+}
+
+.cg-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text2);
+  background: var(--bg2);
+}
+
+.cg-good { color: var(--green); font-weight: 600; font-family: var(--mono); font-size: 12px; }
+.cg-mid  { color: var(--yellow); font-weight: 600; font-family: var(--mono); font-size: 12px; }
+.cg-bad  { color: var(--red); font-weight: 500; font-family: var(--mono); font-size: 12px; }
+.cg-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+/* ── FLAGS & TUNING ── */
+.tuning-section { margin-bottom: 80px; }
+
+.flags-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.flag-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.flag-card-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.flag-line {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--cyan);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.flag-line .flag { color: var(--yellow); }
+.flag-line .val  { color: var(--green2); }
+.flag-note { font-size: 11px; color: var(--text3); margin-top: 4px; margin-bottom: 10px; line-height: 1.5; }
+
+/* ── CALLOUTS ── */
+.callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  align-items: flex-start;
+}
+
+.callout-icon { font-size: 18px; flex-shrink: 0; }
+.callout-body { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.callout-body strong { color: var(--text); }
+
+.callout.cyan  { background: rgba(0,212,255,0.06);  border: 1px solid rgba(0,212,255,0.2);  }
+.callout.green { background: rgba(0,255,157,0.06);  border: 1px solid rgba(0,255,157,0.2);  }
+.callout.yellow{ background: rgba(255,209,102,0.06);border: 1px solid rgba(255,209,102,0.2);}
+.callout.red   { background: rgba(255,71,87,0.06);  border: 1px solid rgba(255,71,87,0.2);  }
+
+code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--cyan);
+}
+
+h3 {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 28px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+h3::before {
+  content: '//';
+  color: var(--text3);
+  font-weight: 300;
+}
+
+p { color: var(--text2); margin-bottom: 12px; line-height: 1.7; }
+
+.mb48 { margin-bottom: 48px; }
+.mt24 { margin-top: 24px; }
+
+/* Animation */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.page > * {
+  animation: fadeUp 0.5s ease both;
+}
+
+.page > *:nth-child(1) { animation-delay: 0.05s; }
+.page > *:nth-child(2) { animation-delay: 0.10s; }
+.page > *:nth-child(3) { animation-delay: 0.15s; }
+.page > *:nth-child(4) { animation-delay: 0.20s; }
+.page > *:nth-child(5) { animation-delay: 0.25s; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-corner">
+      QUARKUS INTERNALS<br>
+      JVM · MEMORY · STORAGE<br>
+      REV 3.x SERIES
+    </div>
+    <div class="hero-label">Top-Down Architecture</div>
+    <div class="hero-title">JVM, <em>Memory</em> &amp;<br>Storage Deep Dive</div>
+    <div class="hero-sub">A full vertical slice through every layer — from your Java source code down to physical RAM and disk — showing exactly how Quarkus allocates, manages, and optimises resources in both JVM and Native modes.</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 1: TOP DOWN LAYER VIEW            -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="topdown">
+    <div class="sec-header">
+      <span class="sec-num">01</span>
+      <span class="sec-title">Top-Down Layer View</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <p>Click any layer to expand it and see what lives inside. Every Quarkus request travels through all five layers — understanding each one tells you where your CPU time, memory, and I/O go.</p>
+
+    <div class="stack-wrap mt24">
+
+      <!-- Layer: Application -->
+      <div class="layer layer-app" onclick="toggleLayer(this)">
+        <div class="layer-inner">
+          <div class="layer-accent"></div>
+          <div class="layer-main">
+            <div class="layer-icon">☕</div>
+            <div class="layer-info">
+              <div class="layer-name">Your Application Code</div>
+              <div class="layer-desc">@Path resources · @ApplicationScoped beans · @Inject · business logic</div>
+            </div>
+            <div class="layer-tags">
+              <span class="tag" style="background:rgba(0,255,157,0.1);color:var(--green);border:1px solid rgba(0,255,157,0.3)">Java 21</span>
+              <span class="tag" style="background:rgba(0,255,157,0.1);color:var(--green);border:1px solid rgba(0,255,157,0.3)">CDI Beans</span>
+              <span class="tag" style="background:rgba(0,255,157,0.1);color:var(--green);border:1px solid rgba(0,255,157,0.3)">JAX-RS</span>
+            </div>
+            <div class="layer-arrow">▼</div>
+          </div>
+        </div>
+        <div class="layer-detail">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <div class="detail-card-title">Bean Lifecycle</div>
+              <p>Arc manages bean creation/destruction. <code>@ApplicationScoped</code> beans live for the app lifetime. <code>@RequestScoped</code> beans are created per HTTP request and destroyed after the response.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Memory Footprint</div>
+              <p>Your code compiles to <strong>bytecode</strong> loaded into Metaspace. Bean instances live on the <strong>heap</strong>. Each CDI proxy is a small synthetic class — also Metaspace.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Build-Time Wiring</div>
+              <p>Arc resolves all <code>@Inject</code> points at build time. The runtime only loads pre-generated wiring classes — zero reflection, zero classpath scanning.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Thread Model</div>
+              <p>Non-blocking endpoints (<code>Uni</code>/<code>Multi</code>) run on the Vert.x event loop. <code>@Blocking</code> methods offload to the Quarkus worker thread pool.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer: Quarkus Runtime -->
+      <div class="layer layer-quarkus" onclick="toggleLayer(this)">
+        <div class="layer-inner">
+          <div class="layer-accent"></div>
+          <div class="layer-main">
+            <div class="layer-icon">⚡</div>
+            <div class="layer-info">
+              <div class="layer-name">Quarkus Runtime</div>
+              <div class="layer-desc">Arc (CDI) · RESTEasy Reactive · SmallRye · Vert.x · Netty</div>
+            </div>
+            <div class="layer-tags">
+              <span class="tag" style="background:rgba(255,140,66,0.1);color:var(--orange);border:1px solid rgba(255,140,66,0.3)">Vert.x</span>
+              <span class="tag" style="background:rgba(255,140,66,0.1);color:var(--orange);border:1px solid rgba(255,140,66,0.3)">Netty</span>
+              <span class="tag" style="background:rgba(255,140,66,0.1);color:var(--orange);border:1px solid rgba(255,140,66,0.3)">Arc</span>
+            </div>
+            <div class="layer-arrow">▼</div>
+          </div>
+        </div>
+        <div class="layer-detail">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <div class="detail-card-title">Vert.x Event Loop</div>
+              <p>Quarkus uses <strong>Vert.x</strong> as its reactive engine. The event loop runs on N threads (usually 2× CPU cores). Each thread handles thousands of concurrent connections — no thread-per-request overhead.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Netty I/O</div>
+              <p>Vert.x sits on top of <strong>Netty</strong> for NIO. Netty uses direct (off-heap) <strong>ByteBuf</strong> buffers for HTTP parsing and I/O, keeping pressure off the GC heap.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">RESTEasy Reactive</div>
+              <p>Route table is pre-computed at build time. Request dispatch is a direct map lookup — O(1). No dynamic proxy chains. Filters run inline on the event loop.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Worker Pool</div>
+              <p>Blocking operations use a <strong>separate worker thread pool</strong> (default: 200 threads, configurable). Workers hand results back to the event loop via <code>Uni</code>/<code>Multi</code>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer: JVM -->
+      <div class="layer layer-jvm" onclick="toggleLayer(this)">
+        <div class="layer-inner">
+          <div class="layer-accent"></div>
+          <div class="layer-main">
+            <div class="layer-icon">🖥️</div>
+            <div class="layer-info">
+              <div class="layer-name">JVM (OpenJDK / GraalVM)</div>
+              <div class="layer-desc">Heap · Metaspace · Code Cache · GC · JIT Compiler · Thread Stacks</div>
+            </div>
+            <div class="layer-tags">
+              <span class="tag" style="background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">G1GC</span>
+              <span class="tag" style="background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">JIT</span>
+              <span class="tag" style="background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">NMT</span>
+            </div>
+            <div class="layer-arrow">▼</div>
+          </div>
+        </div>
+        <div class="layer-detail">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <div class="detail-card-title">Heap</div>
+              <p>All object allocations. Quarkus default: <code>-Xms256m -Xmx512m</code> in containers. Tuned lower than Spring Boot because far fewer objects are created at startup (build-time wiring means no framework object graphs).</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Metaspace</div>
+              <p>Loaded class metadata. Quarkus loads significantly fewer classes than Spring Boot — typically 3–4× fewer. Default metaspace cap: <code>256m</code>. No <code>PermGen</code> (removed in JDK 8+).</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Code Cache</div>
+              <p>JIT-compiled native code. Quarkus hot paths get JIT-compiled quickly. Default: <code>240m</code>. Tiered compilation (C1 → C2) means peak throughput is reached after ~60s of warm traffic.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Thread Stacks</div>
+              <p>Each thread uses <code>-Xss512k</code> (default) of native memory. Vert.x event loop: ~2–4 threads. Worker pool: up to 200. Total stack memory: ~100MB at full load — off-heap, not GC-managed.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer: OS -->
+      <div class="layer layer-os" onclick="toggleLayer(this)">
+        <div class="layer-inner">
+          <div class="layer-accent"></div>
+          <div class="layer-main">
+            <div class="layer-icon">🐧</div>
+            <div class="layer-info">
+              <div class="layer-name">Operating System (Linux / UBI)</div>
+              <div class="layer-desc">Virtual memory · page cache · file descriptors · cgroups · OOM killer</div>
+            </div>
+            <div class="layer-tags">
+              <span class="tag" style="background:rgba(167,139,250,0.1);color:var(--purple);border:1px solid rgba(167,139,250,0.3)">cgroups v2</span>
+              <span class="tag" style="background:rgba(167,139,250,0.1);color:var(--purple);border:1px solid rgba(167,139,250,0.3)">mmap</span>
+              <span class="tag" style="background:rgba(167,139,250,0.1);color:var(--purple);border:1px solid rgba(167,139,250,0.3)">OOM</span>
+            </div>
+            <div class="layer-arrow">▼</div>
+          </div>
+        </div>
+        <div class="layer-detail">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <div class="detail-card-title">RSS vs VSZ</div>
+              <p><strong>RSS</strong> (Resident Set Size) = physical RAM in use. <strong>VSZ</strong> = virtual address space mapped. Quarkus JVM RSS is typically 200–400MB. VSZ is much higher due to memory-mapped JARs and shared libs.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Container Limits</div>
+              <p>Kubernetes sets <code>limits.memory</code> enforced by cgroups. JVM reads container limits via <code>-XX:+UseContainerSupport</code> (default on JDK 11+). Heap defaults to 25% of container memory limit.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">File Descriptors</div>
+              <p>Each open socket, file, and pipe uses a file descriptor. Vert.x NIO servers need higher ulimits. Default OS limit is 1024 — Quarkus recommends 65536 for production workloads.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">OOM Killer</div>
+              <p>If the container exceeds its memory limit, the Linux OOM killer terminates the process. Set JVM heap ceiling below the cgroup limit: if limit is 512MB, use <code>-Xmx384m</code> to leave headroom for Metaspace and stacks.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Layer: Hardware -->
+      <div class="layer layer-hw" onclick="toggleLayer(this)">
+        <div class="layer-inner">
+          <div class="layer-accent"></div>
+          <div class="layer-main">
+            <div class="layer-icon">⚙️</div>
+            <div class="layer-info">
+              <div class="layer-name">Hardware / Container Runtime</div>
+              <div class="layer-desc">CPU cores · NUMA nodes · physical RAM · NVMe disk · network interfaces</div>
+            </div>
+            <div class="layer-tags">
+              <span class="tag" style="background:rgba(255,71,87,0.1);color:var(--red);border:1px solid rgba(255,71,87,0.3)">CPU Affinity</span>
+              <span class="tag" style="background:rgba(255,71,87,0.1);color:var(--red);border:1px solid rgba(255,71,87,0.3)">NUMA</span>
+              <span class="tag" style="background:rgba(255,71,87,0.1);color:var(--red);border:1px solid rgba(255,71,87,0.3)">IOPS</span>
+            </div>
+            <div class="layer-arrow">▼</div>
+          </div>
+        </div>
+        <div class="layer-detail">
+          <div class="detail-grid">
+            <div class="detail-card">
+              <div class="detail-card-title">CPU Throttling</div>
+              <p>Kubernetes <code>limits.cpu</code> is enforced via cgroup CPU quotas. JVM detects CPU count incorrectly if not using <code>+UseContainerSupport</code>. G1GC sizes its parallel workers based on available CPUs.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">NUMA Awareness</div>
+              <p>Multi-socket servers have NUMA nodes — accessing remote memory is ~40% slower. G1GC is NUMA-aware. Quarkus native binaries benefit from NUMA placement since the binary is a single process.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Disk I/O (JAR loading)</div>
+              <p>At JVM startup, the JDK reads class files from JAR. Quarkus fast-jar format uses an index so only needed classes are loaded. Cold-start on slow NFS/EFS mounts can add 2–5s of I/O wait.</p>
+            </div>
+            <div class="detail-card">
+              <div class="detail-card-title">Network</div>
+              <p>Vert.x NIO sockets use kernel bypass where available. In Kubernetes, pod-to-pod traffic goes through CNI plugins (Cilium, Calico). Each hop adds ~0.1ms latency — avoid unnecessary service mesh hops on hot paths.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 2: JVM MEMORY MAP                 -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="memory-section">
+    <div class="sec-header">
+      <span class="sec-num">02</span>
+      <span class="sec-title">JVM Memory Map</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <p>The JVM process memory is split into several distinct regions — only <strong>Heap</strong> is managed by the garbage collector. Everything else is "off-heap" native memory that the GC never touches but still counts against your container memory limit.</p>
+
+    <!-- JVM Regions Diagram -->
+    <div class="jvm-diagram">
+      <div class="jvm-diagram-title">JVM Process Memory — Quarkus Typical (512MB container)</div>
+
+      <div class="jvm-regions">
+
+        <!-- HEAP -->
+        <div class="jvm-region region-heap">
+          <div class="jvm-region-name">Heap (GC-managed)</div>
+          <div class="jvm-region-size" style="color:var(--cyan)">~200 MB</div>
+          <div class="jvm-region-desc">Object allocations. Managed by G1GC. Divided into regions of 1–32MB each. Contains live application objects and framework instances.</div>
+          <div class="heap-inner">
+            <div class="heap-sub">
+              <div class="heap-sub-name">Young Gen (Eden + S0/S1)</div>
+              <div class="heap-sub-val" style="color:var(--cyan)">~60 MB</div>
+              <div style="font-size:11px;color:var(--text3)">Short-lived objects. Minor GC clears frequently. Vert.x request objects live here briefly.</div>
+            </div>
+            <div class="heap-sub">
+              <div class="heap-sub-name">Old Gen (Tenured)</div>
+              <div class="heap-sub-val" style="color:var(--cyan)">~140 MB</div>
+              <div style="font-size:11px;color:var(--text3)">Long-lived objects. Application beans, caches, connection pools. Major GC is infrequent.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- METASPACE -->
+        <div class="jvm-region region-meta">
+          <div class="jvm-region-name">Metaspace</div>
+          <div class="jvm-region-size">~80 MB</div>
+          <div class="jvm-region-desc" style="font-size:11px">Class metadata, bytecode, method data. Off-heap, native memory. Quarkus loads ~3× fewer classes than Spring Boot.</div>
+        </div>
+
+        <!-- CODE CACHE -->
+        <div class="jvm-region region-code">
+          <div class="jvm-region-name">Code Cache</div>
+          <div class="jvm-region-size">~48 MB</div>
+          <div class="jvm-region-desc" style="font-size:11px">JIT-compiled native code (C1 + C2). Grows as hot paths get compiled. Capped at 240MB by default.</div>
+        </div>
+
+        <!-- THREAD STACKS -->
+        <div class="jvm-region region-threads">
+          <div class="jvm-region-name">Thread Stacks</div>
+          <div class="jvm-region-size">~100 MB</div>
+          <div class="jvm-region-desc" style="font-size:11px">512KB per thread × ~200 worker threads + event loop threads. Native memory, not GC-managed.</div>
+        </div>
+
+        <!-- NATIVE MEMORY -->
+        <div class="jvm-region region-native">
+          <div class="jvm-region-name">Native / Other</div>
+          <div class="jvm-region-size">~40 MB</div>
+          <div class="jvm-region-desc" style="font-size:11px">Netty direct buffers, JNI, GC internal structures, symbol tables, string intern pool.</div>
+        </div>
+
+        <!-- GC ROW -->
+        <div class="jvm-region region-gc">
+          <div class="jvm-region-name">GC Algorithm</div>
+          <div class="gc-options">
+            <span class="gc-chip active" onclick="selectGC(this,'g1')">G1GC</span>
+            <span class="gc-chip" onclick="selectGC(this,'zgc')">ZGC</span>
+            <span class="gc-chip" onclick="selectGC(this,'shenandoah')">Shenandoah</span>
+            <span class="gc-chip" onclick="selectGC(this,'serial')">SerialGC</span>
+          </div>
+          <div class="gc-detail" id="gc-detail">
+            <strong style="color:var(--orange)">G1GC</strong> — Default in JDK 11+. Divides heap into equal-sized regions. Good balance of throughput and pause times (~10ms pauses). Recommended for Quarkus services with 256MB+ heap. Use <code>-XX:MaxGCPauseMillis=20</code> to tune.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Memory Bars: JVM vs Native -->
+    <div class="mem-layout">
+      <div class="mem-box">
+        <div class="mem-box-header">
+          <div class="mem-dot" style="background:var(--cyan)"></div>
+          <span style="color:var(--cyan);font-family:var(--mono)">JVM Mode</span>
+          <span style="color:var(--text3);font-size:11px;margin-left:auto">mvn quarkus:build</span>
+        </div>
+        <div class="mem-bars">
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Heap</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:55%;background:linear-gradient(90deg,#00d4ff,#0099cc);color:#fff">200 MB</div>
+            </div>
+            <div class="mem-bar-val">200 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Metaspace</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:22%;background:linear-gradient(90deg,#ffd166,#cc9900);color:#000">80 MB</div>
+            </div>
+            <div class="mem-bar-val">80 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Code Cache</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:13%;background:linear-gradient(90deg,#a78bfa,#7c3aed);color:#fff">48 MB</div>
+            </div>
+            <div class="mem-bar-val">48 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Thread Stacks</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:27%;background:linear-gradient(90deg,#00ff9d,#00cc7d);color:#000">100 MB</div>
+            </div>
+            <div class="mem-bar-val">100 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Native / Other</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:11%;background:linear-gradient(90deg,#ff4757,#cc2233);color:#fff">40 MB</div>
+            </div>
+            <div class="mem-bar-val">40 MB</div>
+          </div>
+          <div style="border-top:1px solid var(--border2);margin-top:8px;padding-top:8px;">
+            <div class="mem-bar-row">
+              <div class="mem-bar-label" style="color:var(--text);font-weight:600">TOTAL RSS</div>
+              <div class="mem-bar-track">
+                <div class="mem-bar-fill" style="width:95%;background:linear-gradient(90deg,#00d4ff,#a78bfa);color:#fff;font-size:12px">~468 MB RSS</div>
+              </div>
+              <div class="mem-bar-val" style="color:var(--cyan)">~470 MB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mem-box">
+        <div class="mem-box-header">
+          <div class="mem-dot" style="background:var(--green)"></div>
+          <span style="color:var(--green);font-family:var(--mono)">Native Mode</span>
+          <span style="color:var(--text3);font-size:11px;margin-left:auto">mvn package -Dnative</span>
+        </div>
+        <div class="mem-bars">
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Image Heap</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:30%;background:linear-gradient(90deg,#00ff9d,#00cc7d);color:#000">28 MB</div>
+            </div>
+            <div class="mem-bar-val">28 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Runtime Heap</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:12%;background:linear-gradient(90deg,#00cc7d,#009955);color:#fff">12 MB</div>
+            </div>
+            <div class="mem-bar-val">12 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Code (AOT)</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:8%;background:linear-gradient(90deg,#a78bfa,#7c3aed);color:#fff">8 MB</div>
+            </div>
+            <div class="mem-bar-val">8 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Thread Stacks</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:5%;background:linear-gradient(90deg,#ffd166,#cc9900);color:#000">4 MB</div>
+            </div>
+            <div class="mem-bar-val">4 MB</div>
+          </div>
+          <div class="mem-bar-row">
+            <div class="mem-bar-label">Native / Other</div>
+            <div class="mem-bar-track">
+              <div class="mem-bar-fill" style="width:6%;background:linear-gradient(90deg,#ff4757,#cc2233);color:#fff">5 MB</div>
+            </div>
+            <div class="mem-bar-val">5 MB</div>
+          </div>
+          <div style="border-top:1px solid var(--border2);margin-top:8px;padding-top:8px;">
+            <div class="mem-bar-row">
+              <div class="mem-bar-label" style="color:var(--text);font-weight:600">TOTAL RSS</div>
+              <div class="mem-bar-track">
+                <div class="mem-bar-fill" style="width:22%;background:linear-gradient(90deg,#00ff9d,#00cc7d);color:#000;font-size:12px">~57 MB RSS</div>
+              </div>
+              <div class="mem-bar-val" style="color:var(--green)">~57 MB</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout cyan">
+      <div class="callout-icon">📊</div>
+      <div class="callout-body">
+        <strong>Why such a massive difference?</strong> In JVM mode, the JVM itself takes 200+ MB before your application even loads. In native mode, GraalVM pre-initialises everything at build time — the "image heap" (pre-populated objects from build-time initialisation) is baked into the binary. There is no JVM process at all. The entire runtime is a single native executable.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 3: STORAGE & BUILD OUTPUTS        -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="storage-section">
+    <div class="sec-header">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Storage &amp; Build Outputs</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <p>Quarkus produces three distinct packaging formats. Understanding what each file contains and why it exists tells you how your application is loaded, how fast it starts, and how large your container image will be.</p>
+
+    <div class="build-outputs">
+
+      <!-- Fast JAR -->
+      <div class="output-box">
+        <div class="output-header">
+          <div class="output-title" style="color:var(--cyan);font-family:var(--mono)">Fast JAR (default)</div>
+          <span class="output-badge" style="background:rgba(0,212,255,0.1);color:var(--cyan);border:1px solid rgba(0,212,255,0.3)">mvn package</span>
+        </div>
+        <div class="output-body">
+          <div class="file-tree">
+<span class="ft-dir">target/quarkus-app/</span>
+├── <span class="ft-jar">quarkus-run.jar</span><span class="ft-size">~12 KB</span>
+├── <span class="ft-dir">lib/</span>
+│   ├── <span class="ft-dir">boot/</span><span class="ft-size">~6 MB</span>
+│   └── <span class="ft-dir">main/</span><span class="ft-size">~35 MB</span>
+├── <span class="ft-jar">app/</span>
+│   └── <span class="ft-jar">account-service.jar</span><span class="ft-size">~80 KB</span>
+└── <span class="ft-jar">quarkus/</span>
+    ├── <span class="ft-jar">generated-bytecode.jar</span><span class="ft-size">~2 MB</span>
+    └── <span class="ft-jar">transformed-bytecode.jar</span><span class="ft-size">~18 MB</span>
+          </div>
+          <div style="margin-top:16px">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Key points</div>
+            <p style="font-size:12px">• <code>quarkus-run.jar</code> is tiny — just the launcher<br>
+            • <code>lib/main/</code> contains all extension dependencies — changes rarely → good Docker layer caching<br>
+            • <code>app/</code> contains only your code — changes every build<br>
+            • <code>quarkus/generated-bytecode.jar</code> = Arc's pre-generated proxies and wiring</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Native Binary -->
+      <div class="output-box">
+        <div class="output-header">
+          <div class="output-title" style="color:var(--green);font-family:var(--mono)">Native Executable</div>
+          <span class="output-badge" style="background:rgba(0,255,157,0.1);color:var(--green);border:1px solid rgba(0,255,157,0.3)">-Dnative</span>
+        </div>
+        <div class="output-body">
+          <div class="file-tree">
+<span class="ft-dir">target/</span>
+├── <span class="ft-bin">account-service-runner</span><span class="ft-size">~65 MB</span>
+├── <span class="ft-jar">account-service-runner.debug</span><span class="ft-size">~120 MB</span>
+└── <span class="ft-dir">native-sources/ (if kept)</span>
+    ├── reflection-config.json
+    ├── resource-config.json
+    └── serialization-config.json
+          </div>
+          <div style="margin-top:16px">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">What's inside the binary</div>
+            <p style="font-size:12px">• All application + framework code — AOT compiled to machine code<br>
+            • <strong>Image heap</strong>: pre-initialised objects serialised into the binary (beans, config, singletons)<br>
+            • Substrate VM (minimal runtime — GC, thread scheduler)<br>
+            • <code>*.debug</code> file contains DWARF debug symbols — exclude from container image</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Size Comparison -->
+    <div class="size-compare">
+      <div class="size-compare-title">Container Image Size Comparison</div>
+      <div class="size-rows">
+        <div class="size-row">
+          <div class="size-row-label">Spring Boot (UBI JDK)</div>
+          <div class="size-bar-wrap">
+            <div class="size-bar-bg">
+              <div class="size-bar" style="width:100%;background:linear-gradient(90deg,#ff4757,#cc2233);color:#fff">~450 MB</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">fat JAR + full JDK base</div>
+        </div>
+        <div class="size-row">
+          <div class="size-row-label">Quarkus JVM (UBI JRE)</div>
+          <div class="size-bar-wrap">
+            <div class="size-bar-bg">
+              <div class="size-bar" style="width:64%;background:linear-gradient(90deg,#ffd166,#cc9900);color:#000">~290 MB</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">fast-jar + JRE base</div>
+        </div>
+        <div class="size-row">
+          <div class="size-row-label">Quarkus JVM (distroless)</div>
+          <div class="size-bar-wrap">
+            <div class="size-bar-bg">
+              <div class="size-bar" style="width:42%;background:linear-gradient(90deg,#ff8c42,#cc5500);color:#fff">~190 MB</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">fast-jar + distroless JRE</div>
+        </div>
+        <div class="size-row">
+          <div class="size-row-label">Quarkus Native (UBI micro)</div>
+          <div class="size-bar-wrap">
+            <div class="size-bar-bg">
+              <div class="size-bar" style="width:20%;background:linear-gradient(90deg,#00ff9d,#00cc7d);color:#000">~90 MB</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">binary + micro base image (~30MB)</div>
+        </div>
+        <div class="size-row">
+          <div class="size-row-label">Quarkus Native (scratch)</div>
+          <div class="size-bar-wrap">
+            <div class="size-bar-bg">
+              <div class="size-bar" style="width:15%;background:linear-gradient(90deg,#00ff9d,#009955);color:#000">~68 MB</div>
+            </div>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3)">binary only — no OS layer</div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Fast JAR vs Uber JAR vs Legacy JAR</h3>
+    <p>Quarkus supports three JAR packaging modes. Fast JAR is the default since Quarkus 1.12 and is strongly recommended:</p>
+
+    <div class="compare-grid">
+      <div class="cg-header" style="color:var(--text3)">Format</div>
+      <div class="cg-header" style="color:var(--cyan)">Fast JAR</div>
+      <div class="cg-header" style="color:var(--yellow)">Uber JAR</div>
+      <div class="cg-header" style="color:var(--purple)">Legacy JAR</div>
+
+      <div class="cg-cell cg-label">Startup speed</div>
+      <div class="cg-cell"><span class="cg-good">Fastest</span><div class="cg-note">Class index pre-built</div></div>
+      <div class="cg-cell"><span class="cg-mid">Slower</span><div class="cg-note">Single JAR, sequential scan</div></div>
+      <div class="cg-cell"><span class="cg-bad">Slowest</span><div class="cg-note">Runner JAR + lib dir</div></div>
+
+      <div class="cg-cell cg-label">Docker layer caching</div>
+      <div class="cg-cell"><span class="cg-good">Excellent</span><div class="cg-note">lib/ rarely changes</div></div>
+      <div class="cg-cell"><span class="cg-bad">Poor</span><div class="cg-note">One fat JAR, always invalidated</div></div>
+      <div class="cg-cell"><span class="cg-mid">OK</span><div class="cg-note">lib/ layer reused</div></div>
+
+      <div class="cg-cell cg-label">Total size on disk</div>
+      <div class="cg-cell"><span class="cg-good">~50 MB</span></div>
+      <div class="cg-cell"><span class="cg-mid">~55 MB</span></div>
+      <div class="cg-cell"><span class="cg-mid">~50 MB</span></div>
+
+      <div class="cg-cell cg-label">Configure</div>
+      <div class="cg-cell"><code style="font-size:11px">quarkus.package.jar.type=fast-jar</code></div>
+      <div class="cg-cell"><code style="font-size:11px">quarkus.package.jar.type=uber-jar</code></div>
+      <div class="cg-cell"><code style="font-size:11px">quarkus.package.jar.type=legacy-jar</code></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 4: JVM FLAGS & TUNING             -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="tuning-section">
+    <div class="sec-header">
+      <span class="sec-num">04</span>
+      <span class="sec-title">JVM Flags &amp; Tuning</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <p>Quarkus sets sensible defaults. These are the flags you'll need to override for production banking workloads — each one is a deliberate trade-off between memory, CPU, and latency.</p>
+
+    <div class="flags-grid">
+
+      <div class="flag-card">
+        <div class="flag-card-title">Heap Sizing</div>
+        <div class="flag-line"><span class="flag">-Xms</span><span class="val">256m</span></div>
+        <div class="flag-note">Initial heap. Set equal to Xmx to avoid heap resize pauses in production.</div>
+        <div class="flag-line"><span class="flag">-Xmx</span><span class="val">512m</span></div>
+        <div class="flag-note">Max heap. Leave 128–256MB headroom below container memory limit for Metaspace + stacks.</div>
+        <div class="flag-line"><span class="flag">-XX:+UseContainerSupport</span><span class="val">true</span></div>
+        <div class="flag-note">On by default JDK 11+. Makes JVM read cgroup memory limits correctly in Kubernetes.</div>
+        <div class="flag-line"><span class="flag">-XX:MaxRAMPercentage</span><span class="val">75.0</span></div>
+        <div class="flag-note">Alternative to Xmx — sets heap as % of container memory. Better for dynamic pod sizing.</div>
+      </div>
+
+      <div class="flag-card">
+        <div class="flag-card-title">GC Tuning (G1GC)</div>
+        <div class="flag-line"><span class="flag">-XX:+UseG1GC</span><span class="val">default</span></div>
+        <div class="flag-note">Default collector JDK 11+. Handles heap sizes from 256MB to large heaps gracefully.</div>
+        <div class="flag-line"><span class="flag">-XX:MaxGCPauseMillis</span><span class="val">20</span></div>
+        <div class="flag-note">Target max GC pause in ms. G1 adjusts region sizes to try to hit this. Set to 50ms for higher throughput.</div>
+        <div class="flag-line"><span class="flag">-XX:G1HeapRegionSize</span><span class="val">4m</span></div>
+        <div class="flag-note">Larger regions for larger heaps. Default auto-selected. Set explicitly if you see humongous allocation warnings.</div>
+        <div class="flag-line"><span class="flag">-XX:+ParallelRefProcEnabled</span><span class="val">true</span></div>
+        <div class="flag-note">Process reference objects in parallel during GC. Reduces pause time on high-allocation workloads.</div>
+      </div>
+
+      <div class="flag-card">
+        <div class="flag-card-title">Metaspace &amp; Code Cache</div>
+        <div class="flag-line"><span class="flag">-XX:MetaspaceSize</span><span class="val">128m</span></div>
+        <div class="flag-note">Initial Metaspace size. Set equal to MaxMetaspaceSize to avoid class metadata GC on startup.</div>
+        <div class="flag-line"><span class="flag">-XX:MaxMetaspaceSize</span><span class="val">256m</span></div>
+        <div class="flag-note">Cap for class metadata. Quarkus uses ~80–100MB. Set a ceiling to avoid unconstrained growth.</div>
+        <div class="flag-line"><span class="flag">-XX:ReservedCodeCacheSize</span><span class="val">128m</span></div>
+        <div class="flag-note">JIT code cache. Default 240MB is too large for constrained containers. 128MB is sufficient for Quarkus.</div>
+        <div class="flag-line"><span class="flag">-XX:+TieredCompilation</span><span class="val">true</span></div>
+        <div class="flag-note">C1 (fast compile) then C2 (optimised). Enabled by default. Gives fast startup + peak throughput after warmup.</div>
+      </div>
+
+      <div class="flag-card">
+        <div class="flag-card-title">Thread Stack &amp; IO</div>
+        <div class="flag-line"><span class="flag">-Xss</span><span class="val">512k</span></div>
+        <div class="flag-note">Thread stack size. Default is 512K–1M depending on OS. Reduce to 256K for services with very high worker thread counts.</div>
+        <div class="flag-line"><span class="flag">-Djava.net.preferIPv4Stack</span><span class="val">true</span></div>
+        <div class="flag-note">Avoids IPv6 resolution delays in some Kubernetes CNI environments. Common fix for connection timeout issues.</div>
+        <div class="flag-line"><span class="flag">-Dfile.encoding</span><span class="val">UTF-8</span></div>
+        <div class="flag-note">Always set explicitly in containers. Default encoding depends on OS locale which may not be UTF-8 in minimal images.</div>
+        <div class="flag-line"><span class="flag">-Dvertx.disableDnsResolver</span><span class="val">true</span></div>
+        <div class="flag-note">Use JDK DNS resolver instead of Vert.x async resolver. Needed in some Kubernetes environments where Vert.x DNS misbehaves.</div>
+      </div>
+
+    </div>
+
+    <h3>Quarkus application.properties — Memory Config</h3>
+
+    <div style="background:var(--bg1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:16px 0">
+      <div style="padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--cyan)">application.properties — prod profile</div>
+      <pre style="padding:20px;font-family:var(--mono);font-size:12px;line-height:1.8;color:var(--text2);overflow-x:auto"><span style="color:#555570"># ── Worker thread pool ──────────────────────────────────</span>
+<span style="color:#ffd166">quarkus.thread-pool.max-threads</span>=200
+<span style="color:#ffd166">quarkus.thread-pool.min-threads</span>=10
+<span style="color:#ffd166">quarkus.thread-pool.growth-resistance</span>=<span style="color:#00ff9d">0.5</span>
+<span style="color:#ffd166">quarkus.thread-pool.shutdown-timeout</span>=<span style="color:#00ff9d">60</span>
+
+<span style="color:#555570"># ── HTTP / Vert.x ───────────────────────────────────────</span>
+<span style="color:#ffd166">quarkus.vertx.event-loops-pool-size</span>=<span style="color:#00ff9d">4</span>   <span style="color:#555570"># default: 2×CPU</span>
+<span style="color:#ffd166">quarkus.http.io-threads</span>=<span style="color:#00ff9d">4</span>
+<span style="color:#ffd166">quarkus.http.idle-timeout</span>=<span style="color:#ff8c42">30S</span>
+<span style="color:#ffd166">quarkus.http.read-timeout</span>=<span style="color:#ff8c42">30S</span>
+
+<span style="color:#555570"># ── Database connection pool ────────────────────────────</span>
+<span style="color:#ffd166">quarkus.datasource.jdbc.min-size</span>=<span style="color:#00ff9d">5</span>
+<span style="color:#ffd166">quarkus.datasource.jdbc.max-size</span>=<span style="color:#00ff9d">20</span>
+<span style="color:#ffd166">quarkus.datasource.jdbc.acquisition-timeout</span>=<span style="color:#00ff9d">5</span>
+
+<span style="color:#555570"># ── JVM options (passed to container entrypoint) ────────</span>
+<span style="color:#555570"># JAVA_OPTS_APPEND=-Xms256m -Xmx384m -XX:MaxRAMPercentage=75</span>
+<span style="color:#555570">#   -XX:MaxMetaspaceSize=256m -XX:ReservedCodeCacheSize=128m</span>
+<span style="color:#555570">#   -XX:+UseG1GC -XX:MaxGCPauseMillis=20</span></pre>
+    </div>
+
+    <div class="callout green">
+      <div class="callout-icon">🏦</div>
+      <div class="callout-body">
+        <strong>Regulated banking services:</strong> For high-throughput payment APIs, set <code>-Xms</code> equal to <code>-Xmx</code> to prevent heap resizing under peak load. Use <code>-XX:MaxGCPauseMillis=10</code> to keep P99 latency below 50ms. For long-running batch jobs, allow larger heap and use <code>-XX:MaxGCPauseMillis=200</code> to favour throughput over pause time.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- SECTION 5: JVM VS NATIVE FULL COMPARISON  -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="compare-section">
+    <div class="sec-header">
+      <span class="sec-num">05</span>
+      <span class="sec-title">JVM vs Native — Full Comparison</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <div class="compare-grid">
+      <div class="cg-header" style="color:var(--text3)">Metric</div>
+      <div class="cg-header" style="color:var(--cyan)">JVM Mode</div>
+      <div class="cg-header" style="color:var(--green)">Native Mode</div>
+      <div class="cg-header" style="color:var(--yellow)">Winner</div>
+
+      <div class="cg-cell cg-label">Startup time</div>
+      <div class="cg-cell"><span class="cg-mid">1–3s</span><div class="cg-note">JVM boot + class loading</div></div>
+      <div class="cg-cell"><span class="cg-good">&lt;50ms</span><div class="cg-note">Pre-initialised binary</div></div>
+      <div class="cg-cell" style="color:var(--green);font-family:var(--mono);font-size:12px">Native</div>
+
+      <div class="cg-cell cg-label">Memory (RSS)</div>
+      <div class="cg-cell"><span class="cg-mid">200–500 MB</span><div class="cg-note">JVM overhead dominates</div></div>
+      <div class="cg-cell"><span class="cg-good">30–80 MB</span><div class="cg-note">No JVM process</div></div>
+      <div class="cg-cell" style="color:var(--green);font-family:var(--mono);font-size:12px">Native</div>
+
+      <div class="cg-cell cg-label">Throughput (peak)</div>
+      <div class="cg-cell"><span class="cg-good">Very High</span><div class="cg-note">JIT reaches optimal code</div></div>
+      <div class="cg-cell"><span class="cg-mid">High</span><div class="cg-note">AOT, no JIT profiling</div></div>
+      <div class="cg-cell" style="color:var(--cyan);font-family:var(--mono);font-size:12px">JVM</div>
+
+      <div class="cg-cell cg-label">Throughput (cold)</div>
+      <div class="cg-cell"><span class="cg-bad">Low</span><div class="cg-note">JIT needs warmup time</div></div>
+      <div class="cg-cell"><span class="cg-good">Consistent</span><div class="cg-note">Peak from first request</div></div>
+      <div class="cg-cell" style="color:var(--green);font-family:var(--mono);font-size:12px">Native</div>
+
+      <div class="cg-cell cg-label">Build time</div>
+      <div class="cg-cell"><span class="cg-good">~5–10s</span><div class="cg-note">Standard Maven build</div></div>
+      <div class="cg-cell"><span class="cg-bad">3–10 min</span><div class="cg-note">GraalVM analysis + compile</div></div>
+      <div class="cg-cell" style="color:var(--cyan);font-family:var(--mono);font-size:12px">JVM</div>
+
+      <div class="cg-cell cg-label">Container image</div>
+      <div class="cg-cell"><span class="cg-mid">190–290 MB</span><div class="cg-note">App + JRE base</div></div>
+      <div class="cg-cell"><span class="cg-good">68–90 MB</span><div class="cg-note">Binary + micro base</div></div>
+      <div class="cg-cell" style="color:var(--green);font-family:var(--mono);font-size:12px">Native</div>
+
+      <div class="cg-cell cg-label">Debuggability</div>
+      <div class="cg-cell"><span class="cg-good">Full</span><div class="cg-note">JDWP, heap dumps, JFR</div></div>
+      <div class="cg-cell"><span class="cg-bad">Limited</span><div class="cg-note">DWARF symbols, no heap dump</div></div>
+      <div class="cg-cell" style="color:var(--cyan);font-family:var(--mono);font-size:12px">JVM</div>
+
+      <div class="cg-cell cg-label">Dynamic class loading</div>
+      <div class="cg-cell"><span class="cg-good">✓ Full</span><div class="cg-note">JDBC drivers, plugins</div></div>
+      <div class="cg-cell"><span class="cg-bad">✗ None</span><div class="cg-note">Closed-world assumption</div></div>
+      <div class="cg-cell" style="color:var(--cyan);font-family:var(--mono);font-size:12px">JVM</div>
+
+      <div class="cg-cell cg-label">Kubernetes fit</div>
+      <div class="cg-cell"><span class="cg-mid">Good</span><div class="cg-note">Standard workloads</div></div>
+      <div class="cg-cell"><span class="cg-good">Excellent</span><div class="cg-note">Sidecar, FaaS, scale-to-zero</div></div>
+      <div class="cg-cell" style="color:var(--green);font-family:var(--mono);font-size:12px">Native</div>
+
+      <div class="cg-cell cg-label">FCA/Regulated use</div>
+      <div class="cg-cell"><span class="cg-good">Preferred</span><div class="cg-note">Full observability, audit logs, JFR</div></div>
+      <div class="cg-cell"><span class="cg-mid">Possible</span><div class="cg-note">Limited profiling tools</div></div>
+      <div class="cg-cell" style="color:var(--cyan);font-family:var(--mono);font-size:12px">JVM</div>
+    </div>
+
+    <div class="callout yellow">
+      <div class="callout-icon">⚖️</div>
+      <div class="callout-body">
+        <strong>Decision rule for regulated services:</strong> Use <strong>JVM mode</strong> for high-throughput payment APIs, account services, and anything requiring JFR/heap dump diagnostics in production. Use <strong>Native mode</strong> for event-driven processors, scheduled batch triggers, sidecar containers, and any service where you need scale-to-zero or sub-second cold starts for cost reasons.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Toggle layer expand/collapse
+function toggleLayer(el) {
+  el.classList.toggle('open');
+}
+
+// GC selector
+const gcInfo = {
+  g1: '<strong style="color:var(--orange)">G1GC</strong> — Default in JDK 11+. Divides heap into equal-sized regions. Good balance of throughput and pause times (~10ms pauses). Recommended for Quarkus services with 256MB+ heap. Use <code>-XX:MaxGCPauseMillis=20</code> to tune.',
+  zgc: '<strong style="color:var(--orange)">ZGC</strong> — Ultra-low pause GC (sub-1ms). Available JDK 15+ (production JDK 17+). Trades slightly higher CPU usage for near-zero stop-the-world pauses. Ideal for low-latency payment APIs with strict P99 SLAs. Use <code>-XX:+UseZGC</code>.',
+  shenandoah: '<strong style="color:var(--orange)">Shenandoah</strong> — Red Hat\'s concurrent GC. Sub-millisecond pauses like ZGC. Available in OpenJDK builds. Does concurrent evacuation of live objects. Use <code>-XX:+UseShenandoahGC</code>. Not in Oracle JDK.',
+  serial: '<strong style="color:var(--orange)">SerialGC</strong> — Single-threaded, simplest GC. Use <code>-XX:+UseSerialGC</code>. Lowest memory overhead (~20MB). Best for very small microservices or CLI tools with &lt;256MB heap. Pause times are long — not for production APIs.'
+};
+
+function selectGC(el, key) {
+  document.querySelectorAll('.gc-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('gc-detail').innerHTML = gcInfo[key];
+}
+</script>
+</body>
+</html>

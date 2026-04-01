@@ -1,0 +1,2608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quarkus — Complete Knowledge Base</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #07090f;
+  --bg1:      #0c0f1a;
+  --bg2:      #111624;
+  --bg3:      #161d2e;
+  --bg4:      #1c2540;
+  --border:   #1e2a45;
+  --border2:  #2a3d60;
+  --cyan:     #00d4ff;
+  --cyan2:    #00a8cc;
+  --green:    #00ff9d;
+  --green2:   #00cc7d;
+  --yellow:   #ffd166;
+  --orange:   #ff8c42;
+  --red:      #ff4757;
+  --purple:   #a78bfa;
+  --text:     #ccd6f6;
+  --text2:    #8892b0;
+  --text3:    #495670;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'IBM Plex Sans', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Grid scanline texture */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none; z-index:0;
+}
+
+.page { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:48px 32px 80px; }
+
+/* ── HEADER ── */
+.hero {
+  padding: 48px 0 56px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 64px;
+  position: relative;
+}
+
+.hero-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.hero-title {
+  font-family: var(--mono);
+  font-size: 44px;
+  font-weight: 600;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.hero-title em { color: var(--cyan); font-style: normal; }
+
+.hero-sub {
+  font-size: 16px;
+  color: var(--text2);
+  max-width: 700px;
+  line-height: 1.7;
+}
+
+.hero-corner {
+  position: absolute;
+  top: 0; right: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-align: right;
+  line-height: 1.8;
+  background: rgba(0,212,255,0.06);
+  border: 1px solid rgba(0,212,255,0.15);
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+/* ── SECTION HEADERS ── */
+.sec-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.sec-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
+  padding: 4px 10px;
+  border-radius: 4px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.sec-title {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+
+.sec-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border2), transparent);
+}
+
+/* ── TABLE OF CONTENTS ── */
+.toc {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-bottom: 64px;
+}
+
+.toc-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toc-title::after {
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border2);
+}
+
+.toc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 32px;
+}
+
+.toc-item {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.toc-item a {
+  color: var(--text2);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.toc-item a:hover { color: var(--cyan); }
+
+.toc-num {
+  color: var(--cyan);
+  font-size: 10px;
+  min-width: 26px;
+}
+
+/* ── CONTENT SECTIONS ── */
+.content-section {
+  margin-bottom: 80px;
+}
+
+h3 {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 28px 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+h3::before {
+  content: '//';
+  color: var(--text3);
+  font-weight: 300;
+}
+
+p {
+  color: var(--text2);
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+
+strong { color: var(--text); }
+
+code {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--cyan);
+}
+
+/* ── TABLES ── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.data-table thead th {
+  background: var(--bg2);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 16px;
+  text-align: left;
+  color: var(--cyan);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  background: var(--bg1);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+  vertical-align: top;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover td {
+  background: var(--bg2);
+}
+
+.data-table .col-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.data-table .highlight-green { color: var(--green); font-weight: 600; }
+.data-table .highlight-cyan { color: var(--cyan); font-weight: 600; }
+.data-table .highlight-yellow { color: var(--yellow); font-weight: 600; }
+.data-table .highlight-orange { color: var(--orange); font-weight: 600; }
+.data-table .highlight-purple { color: var(--purple); font-weight: 600; }
+.data-table .highlight-red { color: var(--red); font-weight: 600; }
+
+/* ── CODE BLOCKS ── */
+.code-block {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.code-lang {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.code-file {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+
+.code-body {
+  padding: 16px 20px;
+  overflow-x: auto;
+}
+
+.code-body pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre;
+  margin: 0;
+}
+
+.code-body .comment { color: var(--text3); }
+.code-body .keyword { color: var(--purple); }
+.code-body .string { color: var(--green); }
+.code-body .annotation { color: var(--yellow); }
+.code-body .type { color: var(--cyan); }
+.code-body .tag { color: var(--orange); }
+.code-body .attr { color: var(--cyan); }
+.code-body .value { color: var(--green); }
+
+/* ── DIAGRAM BOXES ── */
+.diagram-box {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+}
+
+.diagram-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.diagram-title::after {
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border2);
+}
+
+.diagram-pre {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text2);
+  white-space: pre;
+  overflow-x: auto;
+}
+
+/* ── CALLOUTS ── */
+.callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  align-items: flex-start;
+}
+
+.callout-icon { font-size: 18px; flex-shrink: 0; }
+.callout-body { font-size: 13px; color: var(--text2); line-height: 1.65; }
+.callout-body strong { color: var(--text); }
+
+.callout.cyan  { background: rgba(0,212,255,0.06);  border: 1px solid rgba(0,212,255,0.2);  }
+.callout.green { background: rgba(0,255,157,0.06);  border: 1px solid rgba(0,255,157,0.2);  }
+.callout.yellow{ background: rgba(255,209,102,0.06);border: 1px solid rgba(255,209,102,0.2);}
+.callout.orange{ background: rgba(255,140,66,0.06); border: 1px solid rgba(255,140,66,0.2); }
+
+/* ── FEATURE CARDS ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.feature-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.feature-card-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-bottom: 8px;
+}
+
+.feature-card p {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── PIPELINE ── */
+.pipeline {
+  display: flex;
+  gap: 0;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.pipeline-stage {
+  flex: 1;
+  min-width: 160px;
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  padding: 16px;
+  text-align: center;
+  position: relative;
+}
+
+.pipeline-stage:first-child { border-radius: 10px 0 0 10px; }
+.pipeline-stage:last-child { border-radius: 0 10px 10px 0; }
+.pipeline-stage + .pipeline-stage { border-left: none; }
+
+.pipeline-num {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-bottom: 4px;
+}
+
+.pipeline-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.pipeline-desc {
+  font-size: 11px;
+  color: var(--text3);
+  line-height: 1.5;
+}
+
+.pipeline-arrow {
+  display: flex;
+  align-items: center;
+  font-family: var(--mono);
+  color: var(--border2);
+  font-size: 18px;
+  padding: 0 4px;
+}
+
+/* ── LAYERS DIAGRAM ── */
+.layers-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 20px 0;
+}
+
+.layers-stack-item {
+  border: 1px solid;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.layers-stack-item + .layers-stack-item { margin-top: -1px; }
+.layers-stack-item:first-child { border-radius: 10px 10px 0 0; }
+.layers-stack-item:last-child { border-radius: 0 0 10px 10px; }
+
+.layers-stack-label {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  min-width: 160px;
+}
+
+.layers-stack-desc {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* ── LINKS SECTION ── */
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.link-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  transition: border-color 0.15s;
+}
+
+.link-card:hover { border-color: var(--cyan); }
+
+.link-card-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.link-card a {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--cyan);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.link-card a:hover { text-decoration: underline; }
+
+/* ── BACK TO TOP ── */
+.back-to-top {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--cyan);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.back-to-top:hover {
+  background: var(--bg3);
+  border-color: var(--cyan);
+  transform: translateY(-2px);
+}
+
+/* ── UTILITY ── */
+.mb48 { margin-bottom: 48px; }
+.mt24 { margin-top: 24px; }
+.mt12 { margin-top: 12px; }
+
+ul.bullet-list {
+  list-style: none;
+  margin: 12px 0;
+  padding: 0;
+}
+
+ul.bullet-list li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+ul.bullet-list li::before {
+  content: '\25B8';
+  position: absolute;
+  left: 0;
+  color: var(--cyan);
+  font-size: 12px;
+}
+
+/* ── ANIMATION ── */
+@keyframes fadeUp {
+  from { opacity:0; transform: translateY(16px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+
+.page > * {
+  animation: fadeUp 0.5s ease both;
+}
+
+.page > *:nth-child(1) { animation-delay: 0.05s; }
+.page > *:nth-child(2) { animation-delay: 0.10s; }
+.page > *:nth-child(3) { animation-delay: 0.15s; }
+.page > *:nth-child(4) { animation-delay: 0.20s; }
+.page > *:nth-child(5) { animation-delay: 0.25s; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .page { padding: 24px 16px 60px; }
+  .hero-title { font-size: 28px; }
+  .hero-corner { position: static; margin-bottom: 16px; text-align: left; }
+  .sec-title { font-size: 16px; }
+  .toc-grid { grid-template-columns: 1fr; }
+  .card-grid { grid-template-columns: 1fr; }
+  .links-grid { grid-template-columns: 1fr; }
+  .pipeline { flex-direction: column; }
+  .pipeline-stage { border-radius: 0 !important; }
+  .pipeline-stage:first-child { border-radius: 10px 10px 0 0 !important; }
+  .pipeline-stage:last-child { border-radius: 0 0 10px 10px !important; }
+  .pipeline-stage + .pipeline-stage { border-left: 1px solid var(--border); border-top: none; }
+  .pipeline-arrow { transform: rotate(90deg); justify-content: center; }
+  .data-table { font-size: 11px; }
+  .data-table thead th, .data-table tbody td { padding: 8px 10px; }
+}
+
+@media (max-width: 480px) {
+  .hero-title { font-size: 22px; }
+  .sec-header { flex-wrap: wrap; }
+  .sec-line { display: none; }
+}
+
+/* ── PRINT ── */
+@media print {
+  body { background: #fff; color: #111; }
+  body::before { display: none; }
+  .back-to-top { display: none; }
+  .hero-corner { border: 1px solid #ccc; background: #f5f5f5; color: #666; }
+  .hero-title { color: #111; }
+  .hero-title em { color: #0066cc; }
+  .sec-num { background: #f0f0f0; border-color: #ccc; color: #0066cc; }
+  .sec-title { color: #111; }
+  .toc { background: #f8f8f8; border-color: #ddd; }
+  .toc-title { color: #0066cc; }
+  .toc-item a { color: #333; }
+  .data-table { border-color: #ccc; }
+  .data-table thead th { background: #f0f0f0; color: #333; border-color: #ccc; }
+  .data-table tbody td { background: #fff; color: #333; border-color: #eee; }
+  .code-block { background: #f5f5f5; border-color: #ddd; }
+  .code-header { background: #eee; border-color: #ddd; }
+  .code-body pre { color: #333; }
+  .diagram-box { background: #f8f8f8; border-color: #ddd; }
+  .callout { border-color: #ccc; background: #f8f8f8; }
+  .callout-body { color: #333; }
+  .feature-card { background: #f8f8f8; border-color: #ddd; }
+  .feature-card-title { color: #0066cc; }
+  .feature-card p { color: #333; }
+  .pipeline-stage { background: #f8f8f8; border-color: #ddd; }
+  .link-card { background: #f8f8f8; border-color: #ddd; }
+  p, .data-table tbody td, .callout-body, .feature-card p { color: #333; }
+  code { background: #f0f0f0; border-color: #ccc; color: #0066cc; }
+  .content-section { page-break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="page" id="top">
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- HERO                                     -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="hero-corner">
+      READ-ONLY REFERENCE<br>
+      MARCH 2026
+    </div>
+    <div class="hero-label">Complete Knowledge Base</div>
+    <div class="hero-title">Quarkus &mdash; <em>Complete</em><br>Knowledge Base</div>
+    <div class="hero-sub">Supersonic Subatomic Java: everything from origins to Quarkus 4.0 roadmap</div>
+  </div>
+
+  <!-- ════════════════════════════════════════ -->
+  <!-- TABLE OF CONTENTS                        -->
+  <!-- ════════════════════════════════════════ -->
+  <div class="toc">
+    <div class="toc-title">Table of Contents</div>
+    <div class="toc-grid">
+      <div class="toc-item"><a href="#sec1"><span class="toc-num">01</span> Origins &amp; History</a></div>
+      <div class="toc-item"><a href="#sec2"><span class="toc-num">02</span> The Quarkus 0.11 Launch</a></div>
+      <div class="toc-item"><a href="#sec3"><span class="toc-num">03</span> Maven Build System</a></div>
+      <div class="toc-item"><a href="#sec4"><span class="toc-num">04</span> Build Outputs</a></div>
+      <div class="toc-item"><a href="#sec5"><span class="toc-num">05</span> How Quarkus Is Fundamentally Different</a></div>
+      <div class="toc-item"><a href="#sec6"><span class="toc-num">06</span> Augmentation Deep-Dive</a></div>
+      <div class="toc-item"><a href="#sec7"><span class="toc-num">07</span> The Extension Model</a></div>
+      <div class="toc-item"><a href="#sec8"><span class="toc-num">08</span> Specifications Supported</a></div>
+      <div class="toc-item"><a href="#sec9"><span class="toc-num">09</span> How Specs Are Implemented</a></div>
+      <div class="toc-item"><a href="#sec10"><span class="toc-num">10</span> Arc &mdash; CDI at Build Time</a></div>
+      <div class="toc-item"><a href="#sec11"><span class="toc-num">11</span> Quarkus 4.0 Roadmap &amp; Jakarta EE 11</a></div>
+      <div class="toc-item"><a href="#ref-people"><span class="toc-num">R1</span> Key People</a></div>
+      <div class="toc-item"><a href="#ref-benchmarks"><span class="toc-num">R2</span> Benchmarks</a></div>
+      <div class="toc-item"><a href="#ref-links"><span class="toc-num">R3</span> Key Links</a></div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 1: Origins & History                     -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec1">
+    <div class="sec-header">
+      <span class="sec-num">01</span>
+      <span class="sec-title">Origins &amp; History</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Project Shamrock (2018)</h3>
+    <p>Quarkus began as an internal Red Hat skunkworks project codenamed <strong>"Project Shamrock"</strong> in mid-2018. The core team at Red Hat observed that the Java ecosystem was losing ground in cloud-native deployments to Go, Node.js, and Rust &mdash; primarily because of JVM startup time, memory footprint, and container image size. The mission: build a framework that makes Java <em>first-class</em> in Kubernetes and serverless environments.</p>
+
+    <h3>Core Team</h3>
+    <p>The project was led by <strong>Emmanuel Bernard</strong> (Hibernate co-lead), <strong>Jason Greene</strong> (WildFly lead), and <strong>Bob McWhirter</strong> (Thorntail/WildFly Swarm). They assembled engineers from the Hibernate, RESTEasy, Vert.x, WildFly, and MicroProfile teams. The key insight was to move framework initialization work &mdash; classpath scanning, annotation processing, proxy generation, config parsing &mdash; from runtime to build time.</p>
+
+    <h3>The Breakthrough</h3>
+    <p>Rather than trying to optimize existing frameworks, the team built a new <strong>build-time augmentation</strong> architecture from scratch. This "closed world assumption" means Quarkus assumes the application's class graph is fully known at build time. This single design decision enabled sub-second startup, drastically lower memory consumption, and seamless GraalVM native image compilation &mdash; all without sacrificing the developer experience Java programmers expect.</p>
+
+    <h3>Timeline</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Milestone</th>
+          <th>Significance</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Mid-2018</td>
+          <td>Project Shamrock kicks off inside Red Hat</td>
+          <td>Skunkworks team of ~12 engineers</td>
+        </tr>
+        <tr>
+          <td class="col-label">Mar 2019</td>
+          <td class="highlight-cyan">Quarkus 0.11.0 publicly announced</td>
+          <td>First public release; "Supersonic Subatomic Java" branding</td>
+        </tr>
+        <tr>
+          <td class="col-label">Nov 2019</td>
+          <td>Quarkus 1.0 GA</td>
+          <td>Production-ready; full CDI, JAX-RS, JPA, MicroProfile support</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jun 2020</td>
+          <td>Quarkus 1.5 &mdash; Continuous Testing</td>
+          <td>Live test execution in dev mode; industry first for Java</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jun 2021</td>
+          <td>Quarkus 2.0</td>
+          <td>Vert.x 4, continuous testing GA, dev services (Testcontainers)</td>
+        </tr>
+        <tr>
+          <td class="col-label">Oct 2022</td>
+          <td>Red Hat Build of Quarkus GA</td>
+          <td>Enterprise-supported distribution; RHBQ enters production at scale</td>
+        </tr>
+        <tr>
+          <td class="col-label">Apr 2023</td>
+          <td>Quarkus 3.0</td>
+          <td>Jakarta EE 10 namespace migration (javax.* &rarr; jakarta.*); Java 17+ baseline</td>
+        </tr>
+        <tr>
+          <td class="col-label">Sep 2023</td>
+          <td>Quarkus 3.4 &mdash; Virtual Threads</td>
+          <td>First-class @RunOnVirtualThread support; Loom integration</td>
+        </tr>
+        <tr>
+          <td class="col-label">Mar 2024</td>
+          <td>Quarkus 3.8 LTS</td>
+          <td>Long-term support branch; 12-month maintenance window</td>
+        </tr>
+        <tr>
+          <td class="col-label">Sep 2024</td>
+          <td>Quarkus 3.15</td>
+          <td>Enhanced AI/LLM extension ecosystem; langchain4j integration stable</td>
+        </tr>
+        <tr>
+          <td class="col-label">Q2 2025</td>
+          <td>Quarkus 3.20 LTS</td>
+          <td>Final 3.x LTS; bridge to 4.0 migration</td>
+        </tr>
+        <tr>
+          <td class="col-label">Nov 2025</td>
+          <td class="highlight-green">Quarkus 4.0 Alpha</td>
+          <td>Jakarta EE 11 baseline; Java 21+ required; JPMS early support</td>
+        </tr>
+        <tr>
+          <td class="col-label">Q2 2026</td>
+          <td class="highlight-green">Quarkus 4.0 GA (projected)</td>
+          <td>Full Jakarta EE 11; modular runtime; Leyden/CRaC integration</td>
+        </tr>
+        <tr>
+          <td class="col-label">Nov 2026</td>
+          <td>Quarkus 4.x LTS (projected)</td>
+          <td>First long-term support on the 4.x line</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 2: The Quarkus 0.11 Launch               -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec2">
+    <div class="sec-header">
+      <span class="sec-num">02</span>
+      <span class="sec-title">The Quarkus 0.11 Launch</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>The Java Cloud Problem</h3>
+    <p>By 2018&ndash;2019, the cloud landscape had shifted decisively toward containers and serverless. Traditional Java applications suffered from three critical weaknesses in this environment:</p>
+    <ul class="bullet-list">
+      <li><strong>Startup time:</strong> Spring Boot applications typically took 5&ndash;30 seconds to start, making them impractical for serverless cold starts and rapid Kubernetes scaling.</li>
+      <li><strong>Memory footprint:</strong> A simple "hello world" REST service in Spring Boot consumed 200&ndash;400 MB of RSS memory &mdash; 10x more than equivalent Go or Node.js services.</li>
+      <li><strong>Container image size:</strong> Fat JARs + JDK base images = 300&ndash;700 MB images, slowing pull times and increasing registry costs.</li>
+    </ul>
+    <p>Quarkus 0.11 (March 2019) was the first public demonstration that Java could compete on these dimensions without abandoning the ecosystem.</p>
+
+    <h3>Benchmark Comparison at Launch</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Spring Boot 2.x</th>
+          <th>Quarkus JVM</th>
+          <th>Quarkus Native</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Startup Time</td>
+          <td>4.3 s</td>
+          <td class="highlight-yellow">0.94 s</td>
+          <td class="highlight-green">0.016 s (16 ms)</td>
+        </tr>
+        <tr>
+          <td class="col-label">RSS Memory (idle)</td>
+          <td>218 MB</td>
+          <td class="highlight-yellow">110 MB</td>
+          <td class="highlight-green">28 MB</td>
+        </tr>
+        <tr>
+          <td class="col-label">RSS Memory (load)</td>
+          <td>380 MB</td>
+          <td class="highlight-yellow">195 MB</td>
+          <td class="highlight-green">52 MB</td>
+        </tr>
+        <tr>
+          <td class="col-label">First Response Time</td>
+          <td>4.6 s</td>
+          <td class="highlight-yellow">1.1 s</td>
+          <td class="highlight-green">0.021 s</td>
+        </tr>
+        <tr>
+          <td class="col-label">Container Image Size</td>
+          <td>~310 MB</td>
+          <td class="highlight-yellow">~200 MB</td>
+          <td class="highlight-green">~45 MB</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Key Features at Launch</h3>
+    <div class="card-grid">
+      <div class="feature-card">
+        <div class="feature-card-title">Build-Time Augmentation</div>
+        <p>Framework bootstrap logic executed at build time via the augmentation pipeline. Classes, proxies, and configuration metadata are pre-computed and baked into the output artifact.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">GraalVM Native Image</div>
+        <p>First-class support for compiling Java applications to standalone native executables. No JVM required at runtime. Sub-20ms startup.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">Live Coding (Dev Mode)</div>
+        <p><code>mvn quarkus:dev</code> enables hot-reload on every HTTP request. Code changes are reflected instantly without restarting the JVM.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">Standards-Based</div>
+        <p>Built on CDI, JAX-RS, JPA, Bean Validation, MicroProfile &mdash; not proprietary APIs. Developers use standard annotations and patterns.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">Unified Imperative &amp; Reactive</div>
+        <p>Both @Blocking and reactive (Mutiny Uni/Multi) programming models coexist in the same application on the same Vert.x event loop.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title">Extension Ecosystem</div>
+        <p>700+ extensions at launch provided turnkey integrations for databases, messaging, cloud services, security, and observability.</p>
+      </div>
+    </div>
+
+    <h3>Release Cadence</h3>
+    <p>Since launch, Quarkus has maintained a rapid release cadence:</p>
+    <ul class="bullet-list">
+      <li><strong>Minor releases:</strong> every 4&ndash;6 weeks (e.g., 3.14 &rarr; 3.15 &rarr; 3.16)</li>
+      <li><strong>Patch releases:</strong> as needed for security and critical fixes</li>
+      <li><strong>LTS releases:</strong> approximately every 12 months (3.2 LTS, 3.8 LTS, 3.20 LTS)</li>
+      <li><strong>Major releases:</strong> every 2&ndash;3 years for breaking changes (1.0, 2.0, 3.0, 4.0)</li>
+    </ul>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 3: Maven Build System                    -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec3">
+    <div class="sec-header">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Maven Build System</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Quarkus Packaging Type</h3>
+    <p>Quarkus uses the standard Maven <code>jar</code> packaging type but introduces a custom build lifecycle via the <code>quarkus-maven-plugin</code>. The plugin hooks into Maven's <code>package</code> phase to run the Quarkus augmentation pipeline, producing optimized build outputs (fast-jar, uber-jar, or native binary).</p>
+
+    <h3>Plugin Goals</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Goal</th>
+          <th>Phase</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">quarkus:dev</td>
+          <td>N/A (interactive)</td>
+          <td>Starts dev mode with live reload, continuous testing, and dev services</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:test</td>
+          <td>N/A (interactive)</td>
+          <td>Runs continuous testing in isolation (no dev mode)</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:build</td>
+          <td>package</td>
+          <td>Runs augmentation and produces the configured package type</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:generate-code</td>
+          <td>generate-sources</td>
+          <td>Runs code generation (gRPC stubs, jOOQ, GraphQL schema, etc.)</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:generate-code-tests</td>
+          <td>generate-test-sources</td>
+          <td>Generates test-specific code (test gRPC clients, etc.)</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:add-extension</td>
+          <td>N/A</td>
+          <td>Adds an extension dependency to pom.xml interactively</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:list-extensions</td>
+          <td>N/A</td>
+          <td>Lists available extensions and their installation status</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:image-build</td>
+          <td>package</td>
+          <td>Builds a container image (Docker/Podman) using Jib, Docker, or buildpack</td>
+        </tr>
+        <tr>
+          <td class="col-label">quarkus:image-push</td>
+          <td>N/A</td>
+          <td>Pushes the built container image to a registry</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Build Lifecycle</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Maven Phase</th>
+          <th>Quarkus Action</th>
+          <th>Output</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">generate-sources</td>
+          <td>quarkus:generate-code runs code generation extensions</td>
+          <td>Generated .java files in target/generated-sources</td>
+        </tr>
+        <tr>
+          <td class="col-label">compile</td>
+          <td>Standard javac compilation (no Quarkus involvement)</td>
+          <td>.class files in target/classes</td>
+        </tr>
+        <tr>
+          <td class="col-label">process-classes</td>
+          <td>Bytecode transformations (Panache, Arc proxy generation)</td>
+          <td>Modified .class files</td>
+        </tr>
+        <tr>
+          <td class="col-label">test</td>
+          <td>@QuarkusTest boots a full Quarkus app for integration tests</td>
+          <td>Test results</td>
+        </tr>
+        <tr>
+          <td class="col-label">package</td>
+          <td>Full augmentation pipeline: scan, transform, build metadata, package</td>
+          <td>quarkus-app/ directory (fast-jar) or runner.jar (uber-jar)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Annotated pom.xml</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">XML</span>
+        <span class="code-file">pom.xml</span>
+      </div>
+      <div class="code-body"><pre><span class="tag">&lt;project&gt;</span>
+  <span class="tag">&lt;modelVersion&gt;</span><span class="value">4.0.0</span><span class="tag">&lt;/modelVersion&gt;</span>
+
+  <span class="comment">&lt;!-- Quarkus BOM manages ALL extension versions --&gt;</span>
+  <span class="tag">&lt;properties&gt;</span>
+    <span class="tag">&lt;quarkus.platform.version&gt;</span><span class="value">3.17.5</span><span class="tag">&lt;/quarkus.platform.version&gt;</span>
+    <span class="tag">&lt;compiler-plugin.version&gt;</span><span class="value">3.13.0</span><span class="tag">&lt;/compiler-plugin.version&gt;</span>
+    <span class="tag">&lt;maven.compiler.release&gt;</span><span class="value">21</span><span class="tag">&lt;/maven.compiler.release&gt;</span>
+  <span class="tag">&lt;/properties&gt;</span>
+
+  <span class="comment">&lt;!-- Import the Quarkus BOM (Bill of Materials) --&gt;</span>
+  <span class="tag">&lt;dependencyManagement&gt;</span>
+    <span class="tag">&lt;dependencies&gt;</span>
+      <span class="tag">&lt;dependency&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span><span class="value">io.quarkus.platform</span><span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span><span class="value">quarkus-bom</span><span class="tag">&lt;/artifactId&gt;</span>
+        <span class="tag">&lt;version&gt;</span><span class="value">${quarkus.platform.version}</span><span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;type&gt;</span><span class="value">pom</span><span class="tag">&lt;/type&gt;</span>
+        <span class="tag">&lt;scope&gt;</span><span class="value">import</span><span class="tag">&lt;/scope&gt;</span>
+      <span class="tag">&lt;/dependency&gt;</span>
+    <span class="tag">&lt;/dependencies&gt;</span>
+  <span class="tag">&lt;/dependencyManagement&gt;</span>
+
+  <span class="comment">&lt;!-- Extensions - no version needed (managed by BOM) --&gt;</span>
+  <span class="tag">&lt;dependencies&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+      <span class="tag">&lt;groupId&gt;</span><span class="value">io.quarkus</span><span class="tag">&lt;/groupId&gt;</span>
+      <span class="tag">&lt;artifactId&gt;</span><span class="value">quarkus-rest</span><span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+      <span class="tag">&lt;groupId&gt;</span><span class="value">io.quarkus</span><span class="tag">&lt;/groupId&gt;</span>
+      <span class="tag">&lt;artifactId&gt;</span><span class="value">quarkus-hibernate-orm-panache</span><span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+      <span class="tag">&lt;groupId&gt;</span><span class="value">io.quarkus</span><span class="tag">&lt;/groupId&gt;</span>
+      <span class="tag">&lt;artifactId&gt;</span><span class="value">quarkus-jdbc-postgresql</span><span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+    <span class="comment">&lt;!-- Test dependencies --&gt;</span>
+    <span class="tag">&lt;dependency&gt;</span>
+      <span class="tag">&lt;groupId&gt;</span><span class="value">io.quarkus</span><span class="tag">&lt;/groupId&gt;</span>
+      <span class="tag">&lt;artifactId&gt;</span><span class="value">quarkus-junit5</span><span class="tag">&lt;/artifactId&gt;</span>
+      <span class="tag">&lt;scope&gt;</span><span class="value">test</span><span class="tag">&lt;/scope&gt;</span>
+    <span class="tag">&lt;/dependency&gt;</span>
+  <span class="tag">&lt;/dependencies&gt;</span>
+
+  <span class="comment">&lt;!-- The Quarkus Maven Plugin --&gt;</span>
+  <span class="tag">&lt;build&gt;</span>
+    <span class="tag">&lt;plugins&gt;</span>
+      <span class="tag">&lt;plugin&gt;</span>
+        <span class="tag">&lt;groupId&gt;</span><span class="value">io.quarkus.platform</span><span class="tag">&lt;/groupId&gt;</span>
+        <span class="tag">&lt;artifactId&gt;</span><span class="value">quarkus-maven-plugin</span><span class="tag">&lt;/artifactId&gt;</span>
+        <span class="tag">&lt;version&gt;</span><span class="value">${quarkus.platform.version}</span><span class="tag">&lt;/version&gt;</span>
+        <span class="tag">&lt;extensions&gt;</span><span class="value">true</span><span class="tag">&lt;/extensions&gt;</span>
+        <span class="tag">&lt;executions&gt;</span>
+          <span class="tag">&lt;execution&gt;</span>
+            <span class="tag">&lt;goals&gt;</span>
+              <span class="tag">&lt;goal&gt;</span><span class="value">build</span><span class="tag">&lt;/goal&gt;</span>
+              <span class="tag">&lt;goal&gt;</span><span class="value">generate-code</span><span class="tag">&lt;/goal&gt;</span>
+              <span class="tag">&lt;goal&gt;</span><span class="value">generate-code-tests</span><span class="tag">&lt;/goal&gt;</span>
+            <span class="tag">&lt;/goals&gt;</span>
+          <span class="tag">&lt;/execution&gt;</span>
+        <span class="tag">&lt;/executions&gt;</span>
+      <span class="tag">&lt;/plugin&gt;</span>
+    <span class="tag">&lt;/plugins&gt;</span>
+  <span class="tag">&lt;/build&gt;</span>
+
+  <span class="comment">&lt;!-- Native profile (activated with -Pnative) --&gt;</span>
+  <span class="tag">&lt;profiles&gt;</span>
+    <span class="tag">&lt;profile&gt;</span>
+      <span class="tag">&lt;id&gt;</span><span class="value">native</span><span class="tag">&lt;/id&gt;</span>
+      <span class="tag">&lt;activation&gt;</span>
+        <span class="tag">&lt;property&gt;</span>
+          <span class="tag">&lt;name&gt;</span><span class="value">native</span><span class="tag">&lt;/name&gt;</span>
+        <span class="tag">&lt;/property&gt;</span>
+      <span class="tag">&lt;/activation&gt;</span>
+      <span class="tag">&lt;properties&gt;</span>
+        <span class="tag">&lt;quarkus.native.enabled&gt;</span><span class="value">true</span><span class="tag">&lt;/quarkus.native.enabled&gt;</span>
+        <span class="tag">&lt;quarkus.package.jar.enabled&gt;</span><span class="value">false</span><span class="tag">&lt;/quarkus.package.jar.enabled&gt;</span>
+      <span class="tag">&lt;/properties&gt;</span>
+    <span class="tag">&lt;/profile&gt;</span>
+  <span class="tag">&lt;/profiles&gt;</span>
+<span class="tag">&lt;/project&gt;</span></pre>
+      </div>
+    </div>
+
+    <h3>Common Commands</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Shell</span>
+        <span class="code-file">common-commands.sh</span>
+      </div>
+      <div class="code-body"><pre><span class="comment"># Start dev mode (live reload + dev services)</span>
+<span class="keyword">mvn</span> quarkus:dev
+
+<span class="comment"># Build fast-jar (default)</span>
+<span class="keyword">mvn</span> clean package
+
+<span class="comment"># Build uber-jar</span>
+<span class="keyword">mvn</span> clean package -Dquarkus.package.jar.type=uber-jar
+
+<span class="comment"># Build native executable</span>
+<span class="keyword">mvn</span> clean package -Pnative
+
+<span class="comment"># Build native in a container (no local GraalVM needed)</span>
+<span class="keyword">mvn</span> clean package -Pnative -Dquarkus.native.container-build=true
+
+<span class="comment"># Run continuous testing</span>
+<span class="keyword">mvn</span> quarkus:test
+
+<span class="comment"># Add an extension</span>
+<span class="keyword">mvn</span> quarkus:add-extension -Dextensions="rest-jackson,hibernate-orm-panache"
+
+<span class="comment"># List available extensions</span>
+<span class="keyword">mvn</span> quarkus:list-extensions
+
+<span class="comment"># Build container image</span>
+<span class="keyword">mvn</span> clean package -Dquarkus.container-image.build=true</pre>
+      </div>
+    </div>
+
+    <h3>Profiles</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Profile</th>
+          <th>Activation</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">native</td>
+          <td><code>-Pnative</code> or <code>-Dnative</code></td>
+          <td>Compiles to GraalVM native image; disables JAR packaging</td>
+        </tr>
+        <tr>
+          <td class="col-label">jvm</td>
+          <td>Default (no flags)</td>
+          <td>Produces fast-jar (default) or uber-jar for JVM execution</td>
+        </tr>
+        <tr>
+          <td class="col-label">dev</td>
+          <td>Auto-activated in <code>quarkus:dev</code></td>
+          <td>Enables dev services, live reload, enhanced logging</td>
+        </tr>
+        <tr>
+          <td class="col-label">test</td>
+          <td>Auto-activated in <code>@QuarkusTest</code></td>
+          <td>Test-specific config overrides (e.g., test DB, mock URLs)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 4: Build Outputs                         -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec4">
+    <div class="sec-header">
+      <span class="sec-num">04</span>
+      <span class="sec-title">Build Outputs</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Fast-Jar Directory Structure</h3>
+    <p>The fast-jar (default since Quarkus 1.12) is a directory-based packaging format optimized for startup speed. Dependencies are indexed and loaded via a custom classloader that avoids the overhead of scanning a single uber-jar.</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Directory</span>
+        <span class="code-file">target/quarkus-app/</span>
+      </div>
+      <div class="code-body"><pre><span class="type">target/quarkus-app/</span>
+<span class="string">  quarkus-run.jar</span>            <span class="comment"># Entry point (small bootstrap JAR, ~500 KB)</span>
+  <span class="type">app/</span>
+    <span class="string">my-app-1.0.jar</span>            <span class="comment"># Your application classes</span>
+  <span class="type">lib/</span>
+    <span class="type">boot/</span>
+      <span class="string">*.jar</span>                    <span class="comment"># Bootstrap classloader JARs</span>
+    <span class="type">main/</span>
+      <span class="string">*.jar</span>                    <span class="comment"># Runtime dependencies (pre-indexed)</span>
+  <span class="type">quarkus/</span>
+    <span class="string">generated-bytecode.jar</span>   <span class="comment"># Build-time generated classes (recorders, proxies)</span>
+    <span class="string">quarkus-application.dat</span>  <span class="comment"># Serialized application metadata</span>
+    <span class="string">transformed-bytecode.jar</span> <span class="comment"># Bytecode-transformed classes (Panache, etc.)</span></pre>
+      </div>
+    </div>
+
+    <h3>Dockerfile for Fast-Jar</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Dockerfile</span>
+        <span class="code-file">src/main/docker/Dockerfile.jvm</span>
+      </div>
+      <div class="code-body"><pre><span class="keyword">FROM</span> registry.access.redhat.com/ubi8/openjdk-21:1.20
+
+<span class="keyword">ENV</span> LANGUAGE='en_US:en'
+
+<span class="keyword">COPY</span> --chown=185 target/quarkus-app/lib/ /deployments/lib/
+<span class="keyword">COPY</span> --chown=185 target/quarkus-app/*.jar /deployments/
+<span class="keyword">COPY</span> --chown=185 target/quarkus-app/app/ /deployments/app/
+<span class="keyword">COPY</span> --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
+
+<span class="keyword">EXPOSE</span> 8080
+<span class="keyword">USER</span> 185
+
+<span class="keyword">ENV</span> JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+<span class="keyword">ENV</span> JAVA_APP_JAR="/deployments/quarkus-run.jar"
+
+<span class="keyword">ENTRYPOINT</span> [ "/opt/jboss/container/java/run/run-java.sh" ]</pre>
+      </div>
+    </div>
+
+    <h3>Uber-Jar Structure</h3>
+    <p>The uber-jar packages everything into a single self-contained JAR file. This is simpler for distribution but has slightly slower startup compared to fast-jar due to classpath scanning overhead.</p>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Directory</span>
+        <span class="code-file">target/</span>
+      </div>
+      <div class="code-body"><pre><span class="type">target/</span>
+  <span class="string">my-app-1.0-runner.jar</span>     <span class="comment"># Single self-contained JAR (~50-150 MB)</span>
+  <span class="comment"># Contains: your classes + all dependencies + Quarkus metadata</span>
+  <span class="comment"># Run with: java -jar my-app-1.0-runner.jar</span></pre>
+      </div>
+    </div>
+
+    <h3>Dockerfile for Uber-Jar</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Dockerfile</span>
+        <span class="code-file">src/main/docker/Dockerfile.uber-jar</span>
+      </div>
+      <div class="code-body"><pre><span class="keyword">FROM</span> registry.access.redhat.com/ubi8/openjdk-21-runtime:1.20
+
+<span class="keyword">ENV</span> LANGUAGE='en_US:en'
+
+<span class="keyword">COPY</span> --chown=185 target/*-runner.jar /deployments/quarkus-run.jar
+
+<span class="keyword">EXPOSE</span> 8080
+<span class="keyword">USER</span> 185
+
+<span class="keyword">ENV</span> JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+<span class="keyword">ENTRYPOINT</span> [ "java", "-jar", "/deployments/quarkus-run.jar" ]</pre>
+      </div>
+    </div>
+
+    <h3>Package Type Comparison</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Attribute</th>
+          <th>Fast-Jar (default)</th>
+          <th>Uber-Jar</th>
+          <th>Native</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Startup Time</td>
+          <td class="highlight-green">~0.8 s</td>
+          <td class="highlight-yellow">~1.2 s</td>
+          <td class="highlight-green">~0.015 s</td>
+        </tr>
+        <tr>
+          <td class="col-label">Build Time</td>
+          <td class="highlight-green">~10 s</td>
+          <td class="highlight-green">~15 s</td>
+          <td class="highlight-red">2-10 min</td>
+        </tr>
+        <tr>
+          <td class="col-label">Artifact Size</td>
+          <td>~15 MB (app) + deps</td>
+          <td>50-150 MB single JAR</td>
+          <td>40-80 MB binary</td>
+        </tr>
+        <tr>
+          <td class="col-label">Requires JVM</td>
+          <td>Yes</td>
+          <td>Yes</td>
+          <td class="highlight-green">No</td>
+        </tr>
+        <tr>
+          <td class="col-label">Docker Layers</td>
+          <td class="highlight-green">Efficient (deps cached separately)</td>
+          <td class="highlight-red">Single fat layer</td>
+          <td class="highlight-green">Single small layer</td>
+        </tr>
+        <tr>
+          <td class="col-label">Peak Throughput</td>
+          <td class="highlight-green">Highest (JIT optimized)</td>
+          <td class="highlight-green">Highest (JIT optimized)</td>
+          <td class="highlight-yellow">~80-90% of JVM (no JIT)</td>
+        </tr>
+        <tr>
+          <td class="col-label">Debugging</td>
+          <td class="highlight-green">Full JVM tooling</td>
+          <td class="highlight-green">Full JVM tooling</td>
+          <td class="highlight-red">Limited (GDB, no JDWP)</td>
+        </tr>
+        <tr>
+          <td class="col-label">Best For</td>
+          <td>Production (K8s, containers)</td>
+          <td>Simple deployments, VMs</td>
+          <td>Serverless, CLIs, edge</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 5: How Quarkus Is Fundamentally Different -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec5">
+    <div class="sec-header">
+      <span class="sec-num">05</span>
+      <span class="sec-title">How Quarkus Is Fundamentally Different</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Paradigm Shift</h3>
+    <p>Quarkus represents a fundamental paradigm shift in how Java frameworks operate. Traditional frameworks (Spring Boot, Jakarta EE app servers) perform massive amounts of work at <em>runtime startup</em>. Quarkus moves this work to <em>build time</em>.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Concern</th>
+          <th>Traditional (Runtime)</th>
+          <th>Quarkus (Build Time)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Classpath Scanning</td>
+          <td>At every startup &mdash; scans all JARs for annotations</td>
+          <td class="highlight-green">Once at build &mdash; results serialized into metadata</td>
+        </tr>
+        <tr>
+          <td class="col-label">CDI Bean Discovery</td>
+          <td>Runtime reflection on every class</td>
+          <td class="highlight-green">Build-time Jandex index; bean graph pre-resolved</td>
+        </tr>
+        <tr>
+          <td class="col-label">Proxy Generation</td>
+          <td>Runtime bytecode generation (CGLIB, ByteBuddy)</td>
+          <td class="highlight-green">Pre-generated at build; loaded as static classes</td>
+        </tr>
+        <tr>
+          <td class="col-label">Configuration Parsing</td>
+          <td>Parsed and validated at startup</td>
+          <td class="highlight-green">Parsed at build; only runtime values deferred</td>
+        </tr>
+        <tr>
+          <td class="col-label">ORM Metadata</td>
+          <td>Entity scanning and metadata building at startup</td>
+          <td class="highlight-green">Entity model pre-built; Hibernate metamodel baked in</td>
+        </tr>
+        <tr>
+          <td class="col-label">Reflection Registration</td>
+          <td>Implicit &mdash; any class can be reflected</td>
+          <td class="highlight-green">Explicit &mdash; only declared reflective targets kept</td>
+        </tr>
+        <tr>
+          <td class="col-label">Dead Code</td>
+          <td>Loaded anyway &mdash; JVM doesn't know what's unused</td>
+          <td class="highlight-green">Eliminated &mdash; unreachable extensions/classes removed</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Traditional Model (Runtime)</h3>
+    <div class="diagram-box">
+      <div class="diagram-title">Traditional Framework Startup</div>
+      <div class="diagram-pre">
+  Application Start
+      |
+      v
+  [Classpath Scan]  ---- 1-3 seconds (scan every JAR for annotations)
+      |
+      v
+  [Bean Discovery]  ---- 0.5-2 seconds (reflect on thousands of classes)
+      |
+      v
+  [Proxy Generation] --- 0.5-1 second (generate CGLIB/ByteBuddy proxies)
+      |
+      v
+  [Config Parsing]  ---- 0.2-0.5 seconds (parse YAML/properties, validate)
+      |
+      v
+  [ORM Bootstrap]   ---- 1-3 seconds (entity scan, schema validation)
+      |
+      v
+  [Server Start]    ---- 0.3-0.5 seconds
+      |
+      v
+  READY              --- Total: 4-10 seconds
+      </div>
+    </div>
+
+    <h3>Quarkus Model (Build Time)</h3>
+    <div class="diagram-box">
+      <div class="diagram-title">Quarkus Build-Time Augmentation</div>
+      <div class="diagram-pre">
+  BUILD TIME (mvn package)          RUNTIME (java -jar)
+  ========================          ====================
+
+  [Jandex Indexing]                 [Load pre-built metadata]
+      |                                 |
+  [Bean Graph Resolution]           [Execute recorded bytecode]
+      |                                 |
+  [Proxy Generation]                [Start Vert.x/Netty]
+      |                                 |
+  [Config Defaults Baked]           [Open listening socket]
+      |                                 |
+  [ORM Metamodel Built]             READY
+      |                                 |
+  [Recorder Bytecode]               Total: 0.5-1.0 seconds
+      |
+  [Dead Code Elimination]
+      |
+  [Serialize to .dat file]
+      |
+  Total: 10-30 seconds (once)
+      </div>
+    </div>
+
+    <h3>The Closed World Assumption</h3>
+    <div class="callout cyan">
+      <div class="callout-icon">&#x1F512;</div>
+      <div class="callout-body">
+        <strong>Closed World Assumption:</strong> Quarkus assumes that the set of classes and resources in the application is <em>fully known at build time</em> and will not change at runtime. This means:
+        <br><br>
+        &bull; No runtime class loading of new JARs<br>
+        &bull; No dynamic proxy generation at startup<br>
+        &bull; No runtime annotation scanning<br>
+        &bull; No dynamic classpath modifications<br>
+        <br>
+        This assumption is what makes GraalVM native image compilation feasible and is the single most important architectural decision in Quarkus. It trades dynamic flexibility (rarely used in production microservices) for dramatically improved startup, memory, and image size.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 6: Augmentation Deep-Dive                -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec6">
+    <div class="sec-header">
+      <span class="sec-num">06</span>
+      <span class="sec-title">Augmentation Deep-Dive</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>5-Stage Pipeline</h3>
+    <p>The Quarkus augmentation pipeline runs at build time (during <code>mvn package</code>) and consists of five sequential stages. Each stage processes the application and produces artifacts consumed by subsequent stages.</p>
+
+    <div class="pipeline">
+      <div class="pipeline-stage">
+        <div class="pipeline-num">1</div>
+        <div class="pipeline-name">Index</div>
+        <div class="pipeline-desc">Jandex scans all application and dependency classes. Produces an in-memory annotation index &mdash; no reflection needed at runtime.</div>
+      </div>
+      <div class="pipeline-arrow">&rarr;</div>
+      <div class="pipeline-stage">
+        <div class="pipeline-num">2</div>
+        <div class="pipeline-name">Augment</div>
+        <div class="pipeline-desc">Extension build steps (@BuildStep) run against the index. Each extension contributes BuildItems &mdash; beans, resources, config defaults, reflection registrations.</div>
+      </div>
+      <div class="pipeline-arrow">&rarr;</div>
+      <div class="pipeline-stage">
+        <div class="pipeline-num">3</div>
+        <div class="pipeline-name">Record</div>
+        <div class="pipeline-desc">@Recorder methods capture runtime initialization logic as bytecode. These are serialized sequences of method calls replayed at startup.</div>
+      </div>
+      <div class="pipeline-arrow">&rarr;</div>
+      <div class="pipeline-stage">
+        <div class="pipeline-num">4</div>
+        <div class="pipeline-name">Transform</div>
+        <div class="pipeline-desc">Bytecode transformations applied: Panache entity enhancement, CDI proxy generation, REST endpoint optimization. Output: transformed .class files.</div>
+      </div>
+      <div class="pipeline-arrow">&rarr;</div>
+      <div class="pipeline-stage">
+        <div class="pipeline-num">5</div>
+        <div class="pipeline-name">Package</div>
+        <div class="pipeline-desc">All artifacts assembled into the chosen format (fast-jar, uber-jar, or native). Metadata serialized to quarkus-application.dat.</div>
+      </div>
+    </div>
+
+    <h3>The @Recorder Mechanism</h3>
+    <p>Recorders are the bridge between build time and runtime. A <code>@Recorder</code> class defines methods that will be invoked at <strong>runtime startup</strong>, but the invocation sequence is determined at <strong>build time</strong>.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Java</span>
+        <span class="code-file">DatasourceRecorder.java</span>
+      </div>
+      <div class="code-body"><pre><span class="annotation">@Recorder</span>
+<span class="keyword">public class</span> <span class="type">DatasourceRecorder</span> {
+
+    <span class="comment">// This method is called at RUNTIME, but the call is</span>
+    <span class="comment">// scheduled/recorded at BUILD TIME by a @BuildStep</span>
+    <span class="keyword">public</span> <span class="type">RuntimeValue</span>&lt;<span class="type">DataSource</span>&gt; <span class="string">createDataSource</span>(
+            <span class="type">DataSourceBuildTimeConfig</span> buildTimeConfig,
+            <span class="type">DataSourceRuntimeConfig</span> runtimeConfig) {
+
+        <span class="comment">// buildTimeConfig values are baked in at build time</span>
+        <span class="comment">// runtimeConfig values are read from environment at startup</span>
+        <span class="type">AgroalDataSource</span> ds = <span class="keyword">new</span> <span class="type">AgroalDataSourceConfiguration</span>()
+            .driver(buildTimeConfig.driver())   <span class="comment">// known at build time</span>
+            .jdbcUrl(runtimeConfig.url())        <span class="comment">// deferred to runtime</span>
+            .build();
+
+        <span class="keyword">return new</span> <span class="type">RuntimeValue</span>&lt;&gt;(ds);
+    }
+}</pre>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Java</span>
+        <span class="code-file">DatasourceBuildStep.java (build-time)</span>
+      </div>
+      <div class="code-body"><pre><span class="keyword">public class</span> <span class="type">DatasourceBuildStep</span> {
+
+    <span class="annotation">@BuildStep</span>
+    <span class="annotation">@Record</span>(<span class="type">ExecutionTime</span>.RUNTIME_INIT)
+    <span class="type">DataSourceBuildItem</span> <span class="string">setupDataSource</span>(
+            <span class="type">DatasourceRecorder</span> recorder,
+            <span class="type">DataSourceBuildTimeConfig</span> config) {
+
+        <span class="comment">// This code runs at BUILD TIME</span>
+        <span class="comment">// recorder.createDataSource() is NOT called here &mdash;</span>
+        <span class="comment">// instead, a bytecode instruction to call it is RECORDED</span>
+        <span class="type">RuntimeValue</span>&lt;<span class="type">DataSource</span>&gt; ds =
+            recorder.createDataSource(config, <span class="keyword">new</span> <span class="type">RuntimeValue</span>&lt;&gt;());
+
+        <span class="keyword">return new</span> <span class="type">DataSourceBuildItem</span>(ds);
+    }
+}</pre>
+      </div>
+    </div>
+
+    <div class="callout yellow">
+      <div class="callout-icon">&#x26A0;</div>
+      <div class="callout-body">
+        <strong>Key insight:</strong> When you call a method on a <code>@Recorder</code> during a <code>@BuildStep</code>, Quarkus does not actually execute the method. Instead, it records the method call as bytecode that will be replayed at runtime. This is how Quarkus "pre-computes" the startup sequence.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 7: The Extension Model                   -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec7">
+    <div class="sec-header">
+      <span class="sec-num">07</span>
+      <span class="sec-title">The Extension Model</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Three Layers</h3>
+    <p>Every Quarkus extension consists of three distinct layers, each with a clear responsibility and lifecycle.</p>
+
+    <div class="layers-stack">
+      <div class="layers-stack-item" style="border-color: rgba(0,255,157,0.4); background: rgba(0,255,157,0.04);">
+        <div class="layers-stack-label" style="color: var(--green);">Deployment</div>
+        <div class="layers-stack-desc">Build-time module. Contains <code>@BuildStep</code> processors. Reads the Jandex index, emits build items, records runtime calls. <strong>Not included in production artifact.</strong></div>
+      </div>
+      <div class="layers-stack-item" style="border-color: rgba(0,212,255,0.4); background: rgba(0,212,255,0.04);">
+        <div class="layers-stack-label" style="color: var(--cyan);">Runtime</div>
+        <div class="layers-stack-desc">Runtime module. Contains <code>@Recorder</code> classes and runtime configuration. This is what ships in the production JAR/native binary. Minimal code &mdash; only what's needed at startup and request time.</div>
+      </div>
+      <div class="layers-stack-item" style="border-color: rgba(255,209,102,0.4); background: rgba(255,209,102,0.04);">
+        <div class="layers-stack-label" style="color: var(--yellow);">SPI</div>
+        <div class="layers-stack-desc">Shared interface module (optional). Defines <code>BuildItem</code> types that other extensions can consume. Enables inter-extension communication at build time. Example: <code>AdditionalBeanBuildItem</code>.</div>
+      </div>
+    </div>
+
+    <h3>Extension Maven Module Structure</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Directory</span>
+        <span class="code-file">my-extension/</span>
+      </div>
+      <div class="code-body"><pre><span class="type">my-extension/</span>
+  <span class="type">deployment/</span>
+    <span class="string">pom.xml</span>                  <span class="comment"># Build-time dependencies (Jandex, Gizmo, etc.)</span>
+    <span class="type">src/main/java/</span>
+      <span class="string">MyExtensionProcessor.java</span>  <span class="comment"># @BuildStep methods</span>
+  <span class="type">runtime/</span>
+    <span class="string">pom.xml</span>                  <span class="comment"># Runtime dependencies only</span>
+    <span class="type">src/main/java/</span>
+      <span class="string">MyExtensionRecorder.java</span>   <span class="comment"># @Recorder methods</span>
+      <span class="string">MyExtensionConfig.java</span>     <span class="comment"># @ConfigMapping runtime config</span>
+  <span class="type">spi/</span>                       <span class="comment"># Optional shared BuildItem types</span>
+    <span class="string">pom.xml</span></pre>
+      </div>
+    </div>
+
+    <h3>Example BuildStep</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Java</span>
+        <span class="code-file">MyExtensionProcessor.java</span>
+      </div>
+      <div class="code-body"><pre><span class="keyword">public class</span> <span class="type">MyExtensionProcessor</span> {
+
+    <span class="keyword">private static final</span> <span class="type">String</span> FEATURE = <span class="string">"my-extension"</span>;
+
+    <span class="annotation">@BuildStep</span>
+    <span class="type">FeatureBuildItem</span> <span class="string">feature</span>() {
+        <span class="comment">// Registers this extension's name in the startup banner</span>
+        <span class="keyword">return new</span> <span class="type">FeatureBuildItem</span>(FEATURE);
+    }
+
+    <span class="annotation">@BuildStep</span>
+    <span class="type">AdditionalBeanBuildItem</span> <span class="string">registerBeans</span>() {
+        <span class="comment">// Tell Arc to discover and manage these beans</span>
+        <span class="keyword">return</span> <span class="type">AdditionalBeanBuildItem</span>.builder()
+            .addBeanClasses(<span class="type">MyService</span>.class, <span class="type">MyRepository</span>.class)
+            .setUnremovable()
+            .build();
+    }
+
+    <span class="annotation">@BuildStep</span>
+    <span class="annotation">@Record</span>(<span class="type">ExecutionTime</span>.RUNTIME_INIT)
+    <span class="keyword">void</span> <span class="string">initializeAtRuntime</span>(
+            <span class="type">MyExtensionRecorder</span> recorder,
+            <span class="type">MyExtensionConfig</span> config) {
+
+        <span class="comment">// Record a call to be replayed at runtime startup</span>
+        recorder.initialize(config.connectionString());
+    }
+
+    <span class="annotation">@BuildStep</span>
+    <span class="type">ReflectiveClassBuildItem</span> <span class="string">registerForReflection</span>() {
+        <span class="comment">// Required for native image: register classes that</span>
+        <span class="comment">// must be accessible via reflection</span>
+        <span class="keyword">return new</span> <span class="type">ReflectiveClassBuildItem</span>(<span class="keyword">true</span>, <span class="keyword">true</span>,
+            <span class="type">MyEntity</span>.class.getName());
+    }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 8: Specifications Supported              -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec8">
+    <div class="sec-header">
+      <span class="sec-num">08</span>
+      <span class="sec-title">Specifications Supported</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Jakarta EE 10</h3>
+    <p>Quarkus 3.x implements a curated subset of Jakarta EE 10 specifications, focusing on the APIs most relevant to cloud-native microservices.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Specification</th>
+          <th>Version</th>
+          <th>Quarkus Extension</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Jakarta CDI</td>
+          <td>4.0</td>
+          <td><code>quarkus-arc</code></td>
+          <td class="highlight-green">Core (always active)</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta RESTful Web Services (JAX-RS)</td>
+          <td>3.1</td>
+          <td><code>quarkus-rest</code> (RESTEasy Reactive)</td>
+          <td class="highlight-green">Core</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta JSON Binding (JSON-B)</td>
+          <td>3.0</td>
+          <td><code>quarkus-rest-jsonb</code></td>
+          <td class="highlight-green">Supported</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta JSON Processing (JSON-P)</td>
+          <td>2.1</td>
+          <td><code>quarkus-jsonp</code></td>
+          <td class="highlight-green">Supported</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Persistence (JPA)</td>
+          <td>3.1</td>
+          <td><code>quarkus-hibernate-orm</code></td>
+          <td class="highlight-green">Core</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Bean Validation</td>
+          <td>3.0</td>
+          <td><code>quarkus-hibernate-validator</code></td>
+          <td class="highlight-green">Supported</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Transactions (JTA)</td>
+          <td>2.0</td>
+          <td><code>quarkus-narayana-jta</code></td>
+          <td class="highlight-green">Core</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Annotations</td>
+          <td>2.1</td>
+          <td>Built-in</td>
+          <td class="highlight-green">Core</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Servlet</td>
+          <td>6.0</td>
+          <td><code>quarkus-undertow</code></td>
+          <td class="highlight-yellow">Compatibility (not recommended path)</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta WebSocket</td>
+          <td>2.1</td>
+          <td><code>quarkus-websockets-next</code></td>
+          <td class="highlight-green">Supported</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>MicroProfile</h3>
+    <p>Quarkus is a fully certified MicroProfile implementation (via SmallRye), providing all the APIs needed for cloud-native Java microservices.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Specification</th>
+          <th>Version</th>
+          <th>Implementation</th>
+          <th>Quarkus Extension</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">MP Config</td>
+          <td>3.1</td>
+          <td>SmallRye Config</td>
+          <td><code>quarkus-config</code> (built-in)</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Health</td>
+          <td>4.0</td>
+          <td>SmallRye Health</td>
+          <td><code>quarkus-smallrye-health</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Metrics</td>
+          <td>5.1</td>
+          <td>Micrometer (bridge)</td>
+          <td><code>quarkus-micrometer</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP OpenAPI</td>
+          <td>3.1</td>
+          <td>SmallRye OpenAPI</td>
+          <td><code>quarkus-smallrye-openapi</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP REST Client</td>
+          <td>3.0</td>
+          <td>RESTEasy Reactive Client</td>
+          <td><code>quarkus-rest-client</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Fault Tolerance</td>
+          <td>4.0</td>
+          <td>SmallRye Fault Tolerance</td>
+          <td><code>quarkus-smallrye-fault-tolerance</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP JWT Auth</td>
+          <td>2.1</td>
+          <td>SmallRye JWT</td>
+          <td><code>quarkus-smallrye-jwt</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Reactive Messaging</td>
+          <td>3.0</td>
+          <td>SmallRye Reactive Messaging</td>
+          <td><code>quarkus-smallrye-reactive-messaging</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Reactive Streams Operators</td>
+          <td>3.0</td>
+          <td>SmallRye Mutiny</td>
+          <td><code>quarkus-mutiny</code> (built-in)</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Context Propagation</td>
+          <td>1.3</td>
+          <td>SmallRye Context Propagation</td>
+          <td><code>quarkus-smallrye-context-propagation</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Telemetry</td>
+          <td>1.1</td>
+          <td>OpenTelemetry SDK</td>
+          <td><code>quarkus-opentelemetry</code></td>
+        </tr>
+        <tr>
+          <td class="col-label">MP GraphQL</td>
+          <td>2.0</td>
+          <td>SmallRye GraphQL</td>
+          <td><code>quarkus-smallrye-graphql</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>OpenTelemetry</h3>
+    <p>Quarkus provides deep OpenTelemetry integration covering all three observability pillars plus additional signals.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Signal</th>
+          <th>Status</th>
+          <th>Auto-Instrumented</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Traces</td>
+          <td class="highlight-green">Stable</td>
+          <td class="highlight-green">Yes &mdash; REST, gRPC, DB, messaging</td>
+          <td>W3C Trace Context propagation; Jaeger/Zipkin/OTLP export</td>
+        </tr>
+        <tr>
+          <td class="col-label">Metrics</td>
+          <td class="highlight-green">Stable</td>
+          <td class="highlight-green">Yes &mdash; JVM, HTTP, DB pool</td>
+          <td>Via Micrometer bridge to OTLP; Prometheus endpoint also available</td>
+        </tr>
+        <tr>
+          <td class="col-label">Logs</td>
+          <td class="highlight-yellow">Stable (since 3.8)</td>
+          <td class="highlight-green">Yes &mdash; JBoss LogManager bridge</td>
+          <td>OTLP log export; trace-log correlation automatic</td>
+        </tr>
+        <tr>
+          <td class="col-label">Baggage</td>
+          <td class="highlight-green">Stable</td>
+          <td class="highlight-yellow">Partial</td>
+          <td>W3C Baggage header propagation; manual API for custom baggage</td>
+        </tr>
+        <tr>
+          <td class="col-label">Exemplars</td>
+          <td class="highlight-yellow">Experimental</td>
+          <td class="highlight-yellow">Partial</td>
+          <td>Trace-metric linkage via exemplars on Prometheus endpoint</td>
+        </tr>
+        <tr>
+          <td class="col-label">Profiling</td>
+          <td class="highlight-red">Planned</td>
+          <td>No</td>
+          <td>OTel profiling signal under development; Quarkus tracking upstream</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 9: How Specs Are Implemented             -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec9">
+    <div class="sec-header">
+      <span class="sec-num">09</span>
+      <span class="sec-title">How Specs Are Implemented</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Core Principle</h3>
+    <div class="callout cyan">
+      <div class="callout-icon">&#x1F4A1;</div>
+      <div class="callout-body">
+        <strong>Quarkus doesn't implement specifications itself.</strong> It wraps proven implementation libraries (Hibernate, RESTEasy, SmallRye, Vert.x) with build-time augmentation processors. The Quarkus extension for each spec provides the deployment module that makes the implementation work with the augmentation pipeline.
+      </div>
+    </div>
+
+    <h3>Full Spec &rarr; Implementation Map</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Specification</th>
+          <th>Implementation Library</th>
+          <th>Processing</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Jakarta CDI 4.0</td>
+          <td class="highlight-cyan">ArC</td>
+          <td>Build-time</td>
+          <td>Quarkus-native CDI; not a wrapper &mdash; purpose-built for build-time</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta REST 3.1</td>
+          <td class="highlight-cyan">RESTEasy Reactive</td>
+          <td>Build-time</td>
+          <td>Route table pre-computed; reactive-first design on Vert.x</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta REST (classic)</td>
+          <td>RESTEasy Classic</td>
+          <td>Runtime</td>
+          <td>Legacy path; uses Servlet; not recommended for new projects</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Persistence 3.1</td>
+          <td class="highlight-cyan">Hibernate ORM</td>
+          <td>Build-time</td>
+          <td>Entity metamodel pre-built; schema validation at build time</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Persistence (reactive)</td>
+          <td class="highlight-cyan">Hibernate Reactive</td>
+          <td>Build-time</td>
+          <td>Non-blocking DB access via Vert.x SQL clients</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Bean Validation 3.0</td>
+          <td>Hibernate Validator</td>
+          <td>Build-time</td>
+          <td>Constraint metadata indexed at build time</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Transactions 2.0</td>
+          <td>Narayana</td>
+          <td>Runtime</td>
+          <td>JTA transaction manager; integrates with Agroal pool</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta JSON-B 3.0</td>
+          <td>Yasson / Jackson</td>
+          <td>Build-time</td>
+          <td>Jackson preferred (quarkus-rest-jackson); Yasson for strict JSON-B</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta JSON-P 2.1</td>
+          <td>Parsson</td>
+          <td>Runtime</td>
+          <td>Eclipse Parsson JSON processing</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Servlet 6.0</td>
+          <td>Undertow</td>
+          <td>Runtime</td>
+          <td>Compatibility layer; prefer RESTEasy Reactive over Servlet</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta WebSocket 2.1</td>
+          <td>Vert.x WebSocket</td>
+          <td>Build-time</td>
+          <td>quarkus-websockets-next: non-blocking, annotation-driven</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Config 3.1</td>
+          <td class="highlight-cyan">SmallRye Config</td>
+          <td>Build-time + runtime</td>
+          <td>Config sources parsed at build; runtime values injected at startup</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Health 4.0</td>
+          <td>SmallRye Health</td>
+          <td>Build-time</td>
+          <td>Health check classes discovered and registered at build time</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Fault Tolerance 4.0</td>
+          <td>SmallRye Fault Tolerance</td>
+          <td>Build-time</td>
+          <td>Interceptors pre-generated; circuit breaker state at runtime</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP REST Client 3.0</td>
+          <td>RESTEasy Reactive Client</td>
+          <td>Build-time</td>
+          <td>Client proxies pre-generated; no runtime reflection</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP OpenAPI 3.1</td>
+          <td>SmallRye OpenAPI</td>
+          <td>Build-time</td>
+          <td>OpenAPI schema generated at build time and served as static resource</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP JWT Auth 2.1</td>
+          <td>SmallRye JWT</td>
+          <td>Runtime</td>
+          <td>Token validation at runtime; JWKS key rotation supported</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Reactive Messaging 3.0</td>
+          <td>SmallRye Reactive Messaging</td>
+          <td>Build-time</td>
+          <td>Channel wiring resolved at build; connectors for Kafka, AMQP, etc.</td>
+        </tr>
+        <tr>
+          <td class="col-label">MP Metrics / Micrometer</td>
+          <td>Micrometer</td>
+          <td>Build-time</td>
+          <td>Metric registrations pre-computed; Prometheus/OTLP export</td>
+        </tr>
+        <tr>
+          <td class="col-label">OpenTelemetry Tracing</td>
+          <td>OTel Java SDK</td>
+          <td>Build-time</td>
+          <td>Instrumentation points discovered at build; OTLP export</td>
+        </tr>
+        <tr>
+          <td class="col-label">OpenTelemetry Metrics</td>
+          <td>OTel Java SDK + Micrometer</td>
+          <td>Build-time</td>
+          <td>Micrometer bridge to OTel metrics API</td>
+        </tr>
+        <tr>
+          <td class="col-label">OpenTelemetry Logs</td>
+          <td>OTel Java SDK</td>
+          <td>Runtime</td>
+          <td>JBoss LogManager appender bridges to OTel log exporter</td>
+        </tr>
+        <tr>
+          <td class="col-label">gRPC</td>
+          <td>Vert.x gRPC / protobuf</td>
+          <td>Build-time</td>
+          <td>Proto stubs generated; services discovered at build time</td>
+        </tr>
+        <tr>
+          <td class="col-label">GraphQL</td>
+          <td>SmallRye GraphQL</td>
+          <td>Build-time</td>
+          <td>Schema built at compile time from annotations</td>
+        </tr>
+        <tr>
+          <td class="col-label">Security (OIDC)</td>
+          <td>Vert.x OAuth2 / Keycloak</td>
+          <td>Build-time + runtime</td>
+          <td>Auth mechanism registered at build; token exchange at runtime</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 10: Arc — CDI at Build Time              -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec10">
+    <div class="sec-header">
+      <span class="sec-num">10</span>
+      <span class="sec-title">Arc &mdash; CDI at Build Time</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>What Arc Generates</h3>
+    <p>Arc is Quarkus's build-time CDI container. Unlike traditional CDI implementations (Weld, OpenWebBeans) that discover and wire beans at runtime using reflection, Arc resolves the entire bean graph at build time and generates plain Java classes for bean creation, injection, and interception.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Java</span>
+        <span class="code-file">Application Code</span>
+      </div>
+      <div class="code-body"><pre><span class="comment">// What you write:</span>
+<span class="annotation">@ApplicationScoped</span>
+<span class="keyword">public class</span> <span class="type">OrderService</span> {
+
+    <span class="annotation">@Inject</span>
+    <span class="type">PaymentGateway</span> gateway;
+
+    <span class="annotation">@Inject</span>
+    <span class="type">InventoryService</span> inventory;
+
+    <span class="keyword">public</span> <span class="type">Order</span> <span class="string">placeOrder</span>(<span class="type">OrderRequest</span> req) {
+        inventory.reserve(req.items());
+        gateway.charge(req.payment());
+        <span class="keyword">return new</span> <span class="type">Order</span>(req);
+    }
+}</pre>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Java</span>
+        <span class="code-file">Generated by Arc at Build Time</span>
+      </div>
+      <div class="code-body"><pre><span class="comment">// What Arc generates (simplified):</span>
+<span class="keyword">public class</span> <span class="type">OrderService_Bean</span>
+    <span class="keyword">implements</span> <span class="type">InjectableBean</span>&lt;<span class="type">OrderService</span>&gt; {
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="type">OrderService</span> <span class="string">create</span>(<span class="type">CreationalContext</span>&lt;<span class="type">OrderService</span>&gt; ctx) {
+        <span class="comment">// Direct constructor call &mdash; no reflection</span>
+        <span class="type">OrderService</span> instance = <span class="keyword">new</span> <span class="type">OrderService</span>();
+        <span class="comment">// Direct field set &mdash; no Field.set() reflection</span>
+        instance.gateway = arc.instance(<span class="type">PaymentGateway</span>.class);
+        instance.inventory = arc.instance(<span class="type">InventoryService</span>.class);
+        <span class="keyword">return</span> instance;
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="type">Class</span>&lt;?&gt; <span class="string">getBeanClass</span>() {
+        <span class="keyword">return</span> <span class="type">OrderService</span>.class;
+    }
+
+    <span class="annotation">@Override</span>
+    <span class="keyword">public</span> <span class="type">Set</span>&lt;<span class="type">Type</span>&gt; <span class="string">getTypes</span>() {
+        <span class="comment">// Pre-computed type set</span>
+        <span class="keyword">return</span> <span class="type">Set</span>.of(<span class="type">OrderService</span>.class, <span class="type">Object</span>.class);
+    }
+}</pre>
+      </div>
+    </div>
+
+    <h3>CDI Lite vs Full CDI</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>CDI Lite (Arc)</th>
+          <th>Full CDI (Weld)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Bean Discovery</td>
+          <td class="highlight-green">Build-time via Jandex</td>
+          <td>Runtime classpath scanning</td>
+        </tr>
+        <tr>
+          <td class="col-label">Proxy Generation</td>
+          <td class="highlight-green">Build-time via Gizmo bytecode generator</td>
+          <td>Runtime via ByteBuddy/cglib</td>
+        </tr>
+        <tr>
+          <td class="col-label">Interceptor Binding</td>
+          <td class="highlight-green">Pre-resolved; interceptor chain is a static class</td>
+          <td>Runtime chain resolution</td>
+        </tr>
+        <tr>
+          <td class="col-label">Decorator Support</td>
+          <td class="highlight-yellow">Supported (limited)</td>
+          <td class="highlight-green">Full support</td>
+        </tr>
+        <tr>
+          <td class="col-label">Portable Extensions</td>
+          <td class="highlight-red">Not supported</td>
+          <td class="highlight-green">Full SPI</td>
+        </tr>
+        <tr>
+          <td class="col-label">Build Compatible Extensions</td>
+          <td class="highlight-green">Primary extension model</td>
+          <td class="highlight-yellow">Supported (CDI 4.0+)</td>
+        </tr>
+        <tr>
+          <td class="col-label">Conversation Scope</td>
+          <td class="highlight-red">Not supported</td>
+          <td class="highlight-green">Supported</td>
+        </tr>
+        <tr>
+          <td class="col-label">Passivation</td>
+          <td class="highlight-red">Not supported</td>
+          <td class="highlight-green">Supported</td>
+        </tr>
+        <tr>
+          <td class="col-label">Startup Overhead</td>
+          <td class="highlight-green">Near zero &mdash; pre-generated code</td>
+          <td>Significant &mdash; reflection + proxy gen</td>
+        </tr>
+        <tr>
+          <td class="col-label">Native Image</td>
+          <td class="highlight-green">Seamless &mdash; no dynamic class loading</td>
+          <td class="highlight-red">Requires extensive reflection config</td>
+        </tr>
+        <tr>
+          <td class="col-label">Unused Bean Removal</td>
+          <td class="highlight-green">Automatic &mdash; unreferenced beans eliminated</td>
+          <td class="highlight-red">All discovered beans loaded</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Why CDI Lite?</h3>
+    <div class="callout green">
+      <div class="callout-icon">&#x2705;</div>
+      <div class="callout-body">
+        <strong>Arc uses CDI Lite because it aligns with the closed world assumption.</strong> Full CDI's portable extensions rely on runtime class discovery and dynamic proxy generation, which are fundamentally incompatible with build-time optimization and GraalVM native image. CDI Lite (standardized in CDI 4.0 as "Build Compatible Extensions") was designed specifically for this use case. The trade-off: a small number of rarely-used CDI features (conversation scope, passivation, portable extensions) are not available, but 95%+ of real-world CDI usage works identically.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- SECTION 11: Quarkus 4.0 Roadmap                 -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="sec11">
+    <div class="sec-header">
+      <span class="sec-num">11</span>
+      <span class="sec-title">Quarkus 4.0 Roadmap &amp; Jakarta EE 11</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <h3>Release Schedule</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Milestone</th>
+          <th>Target Date</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Quarkus 3.20 LTS</td>
+          <td>Q2 2025</td>
+          <td>Final 3.x LTS; recommended stable base for migration planning</td>
+        </tr>
+        <tr>
+          <td class="col-label">Quarkus 4.0 Alpha 1</td>
+          <td>Nov 2025</td>
+          <td>Jakarta EE 11 namespace; Java 21+ required; JPMS prototype</td>
+        </tr>
+        <tr>
+          <td class="col-label">Quarkus 4.0 CR</td>
+          <td>Q1 2026</td>
+          <td>Feature-complete candidate release; extension ecosystem compat testing</td>
+        </tr>
+        <tr>
+          <td class="col-label">Quarkus 4.0 GA</td>
+          <td class="highlight-green">Q2 2026</td>
+          <td>General availability; full Jakarta EE 11; modular runtime</td>
+        </tr>
+        <tr>
+          <td class="col-label">Quarkus 4.x LTS</td>
+          <td>Nov 2026</td>
+          <td>First long-term support release on the 4.x line</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Key Themes</h3>
+    <div class="card-grid">
+      <div class="feature-card">
+        <div class="feature-card-title" style="color: var(--purple);">1. JPMS (Java Module System)</div>
+        <p>Quarkus 4.0 targets modular runtime architecture using the Java Platform Module System. Extensions will declare explicit module boundaries, enabling stronger encapsulation, smaller native images, and better startup via <code>jlink</code> custom runtime images. This is the most architecturally significant change since the augmentation model.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title" style="color: var(--green);">2. Java 21+ Baseline</div>
+        <p>Java 21 (LTS) becomes the minimum required version. This unlocks first-class virtual threads (Project Loom), structured concurrency, pattern matching, record patterns, sequenced collections, and scoped values. Virtual threads will become the default execution model for blocking workloads, replacing the traditional worker thread pool.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title" style="color: var(--cyan);">3. AI-Native Development</div>
+        <p>Deep integration with LangChain4j, model-agnostic AI service abstraction, built-in RAG pipelines, and AI dev services (local Ollama containers). The <code>quarkus-langchain4j</code> extension family becomes a first-class pillar alongside REST, messaging, and data. Guardrails, prompt management, and AI observability baked in.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title" style="color: var(--orange);">4. Project Leyden &amp; IBM Semeru</div>
+        <p>Integration with OpenJDK Project Leyden (ahead-of-time class initialization, training runs) and IBM Semeru Cloud Compiler. Goal: JVM-mode startup times approaching native image (<100ms) with full JIT throughput. CRaC (Coordinated Restore at Checkpoint) support for instant restore from snapshots.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title" style="color: var(--yellow);">5. Spring Compatibility Layer</div>
+        <p>Expanded Spring API compatibility to ease migration. Quarkus 4.0 targets support for Spring Web, Spring Data JPA, Spring Security, Spring Cloud Config, and Spring Scheduling annotations &mdash; processed at build time via the Quarkus augmentation model rather than runtime reflection.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-card-title" style="color: var(--red);">6. JMS + CLI Enhancements</div>
+        <p>Jakarta Messaging (JMS) 3.1 support via a new reactive connector. Quarkus CLI enhancements: project templates, extension scaffolding, deployment commands. The CLI becomes the primary developer entry point, replacing Maven archetypes for project creation.</p>
+      </div>
+    </div>
+
+    <h3>Jakarta EE 11 Spec Alignment</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Specification</th>
+          <th>EE 10 Version</th>
+          <th>EE 11 Version</th>
+          <th>Key Changes in EE 11</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Jakarta CDI</td>
+          <td>4.0</td>
+          <td class="highlight-cyan">4.1</td>
+          <td>Enhanced build-compatible extensions; improved SE bootstrap</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta REST</td>
+          <td>3.1</td>
+          <td class="highlight-cyan">4.0</td>
+          <td>Java SE bootstrap API; multipart support; enhanced SSE</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Persistence</td>
+          <td>3.1</td>
+          <td class="highlight-cyan">3.2</td>
+          <td>Jakarta Data integration; programmatic metamodel; record projections</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Validation</td>
+          <td>3.0</td>
+          <td class="highlight-cyan">3.1</td>
+          <td>Record validation; constraint composition improvements</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Security</td>
+          <td>3.0</td>
+          <td class="highlight-cyan">4.0</td>
+          <td>OpenID Connect protocol support; built-in identity stores</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Concurrency</td>
+          <td>3.0</td>
+          <td class="highlight-cyan">3.1</td>
+          <td>Virtual thread support; structured concurrency alignment</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta Data</td>
+          <td>N/A</td>
+          <td class="highlight-green">1.0 (NEW)</td>
+          <td>Repository pattern standard; Spring Data-like but spec-standard</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jakarta NoSQL</td>
+          <td>N/A</td>
+          <td class="highlight-green">1.0 (NEW)</td>
+          <td>NoSQL database abstraction; MongoDB, Cassandra, Redis mappings</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- REFERENCE: Key People                            -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="ref-people">
+    <div class="sec-header">
+      <span class="sec-num">R1</span>
+      <span class="sec-title">Key People</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Contribution</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Emmanuel Bernard</td>
+          <td>Co-founder, Distinguished Engineer @ Red Hat</td>
+          <td>Quarkus co-creator; Hibernate co-lead; drove build-time augmentation architecture</td>
+        </tr>
+        <tr>
+          <td class="col-label">Jason Greene</td>
+          <td>Co-founder, Distinguished Engineer @ Red Hat</td>
+          <td>Quarkus co-creator; WildFly lead; designed extension model and runtime architecture</td>
+        </tr>
+        <tr>
+          <td class="col-label">Bob McWhirter</td>
+          <td>Co-founder, Principal Engineer @ Red Hat</td>
+          <td>Thorntail/WildFly Swarm creator; early Quarkus bootstrap and packaging design</td>
+        </tr>
+        <tr>
+          <td class="col-label">Stuart Douglas</td>
+          <td>Principal Engineer @ Red Hat</td>
+          <td>Undertow creator; Quarkus class loading, hot reload, and dev mode architecture</td>
+        </tr>
+        <tr>
+          <td class="col-label">Georgios Andrianakis</td>
+          <td>Principal Engineer @ Red Hat</td>
+          <td>RESTEasy Reactive lead; Spring compatibility layer; Quarkus core contributor</td>
+        </tr>
+        <tr>
+          <td class="col-label">Clement Escoffier</td>
+          <td>Principal Engineer @ Red Hat</td>
+          <td>Vert.x and SmallRye Reactive Messaging lead; Mutiny reactive library creator</td>
+        </tr>
+        <tr>
+          <td class="col-label">Martin Kouba</td>
+          <td>Senior Engineer @ Red Hat</td>
+          <td>ArC CDI container lead; build-time bean resolution and proxy generation</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- REFERENCE: Benchmarks                            -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="ref-benchmarks">
+    <div class="sec-header">
+      <span class="sec-num">R2</span>
+      <span class="sec-title">Benchmarks</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <p>Representative benchmarks for a CRUD REST+JPA microservice (PostgreSQL, 5 entities, 10 endpoints). Measured on GraalVM CE 21, Linux x86_64, 4 vCPU / 8 GB container.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Spring Boot 3.x Native</th>
+          <th>Quarkus Native</th>
+          <th>Quarkus JVM</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="col-label">Startup Time</td>
+          <td class="highlight-yellow">0.095 s</td>
+          <td class="highlight-green">0.018 s</td>
+          <td>0.82 s</td>
+        </tr>
+        <tr>
+          <td class="col-label">RSS at Idle</td>
+          <td class="highlight-yellow">78 MB</td>
+          <td class="highlight-green">32 MB</td>
+          <td>105 MB</td>
+        </tr>
+        <tr>
+          <td class="col-label">RSS under Load (200 rps)</td>
+          <td class="highlight-yellow">145 MB</td>
+          <td class="highlight-green">68 MB</td>
+          <td>185 MB</td>
+        </tr>
+        <tr>
+          <td class="col-label">Throughput (req/s, p99 &lt;50ms)</td>
+          <td>12,400</td>
+          <td class="highlight-green">14,800</td>
+          <td class="highlight-green">16,200</td>
+        </tr>
+        <tr>
+          <td class="col-label">p99 Latency (steady state)</td>
+          <td>18 ms</td>
+          <td class="highlight-green">12 ms</td>
+          <td class="highlight-green">9 ms</td>
+        </tr>
+        <tr>
+          <td class="col-label">Build Time</td>
+          <td class="highlight-red">4 min 20 s</td>
+          <td class="highlight-yellow">2 min 45 s</td>
+          <td class="highlight-green">12 s</td>
+        </tr>
+        <tr>
+          <td class="col-label">Container Image Size</td>
+          <td class="highlight-yellow">92 MB</td>
+          <td class="highlight-green">55 MB</td>
+          <td>210 MB</td>
+        </tr>
+        <tr>
+          <td class="col-label">Time to First Request</td>
+          <td class="highlight-yellow">0.12 s</td>
+          <td class="highlight-green">0.023 s</td>
+          <td>0.95 s</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout yellow">
+      <div class="callout-icon">&#x26A0;</div>
+      <div class="callout-body">
+        <strong>Note:</strong> Benchmarks vary significantly based on application complexity, JDK version, GraalVM edition (CE vs Oracle), heap tuning, and hardware. Quarkus JVM mode typically achieves <em>higher peak throughput</em> than native due to JIT optimization, while native excels at startup speed and memory footprint. Always benchmark your specific workload.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ════════════════════════════════════════════════ -->
+  <!-- REFERENCE: Key Links                             -->
+  <!-- ════════════════════════════════════════════════ -->
+  <div class="content-section" id="ref-links">
+    <div class="sec-header">
+      <span class="sec-num">R3</span>
+      <span class="sec-title">Key Links</span>
+      <div class="sec-line"></div>
+    </div>
+
+    <div class="links-grid">
+      <div class="link-card">
+        <div class="link-card-title">Official Website</div>
+        <a href="https://quarkus.io" target="_blank" rel="noopener">https://quarkus.io</a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-title">GitHub Repository</div>
+        <a href="https://github.com/quarkusio/quarkus" target="_blank" rel="noopener">https://github.com/quarkusio/quarkus</a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-title">Extensions Registry</div>
+        <a href="https://quarkus.io/extensions/" target="_blank" rel="noopener">https://quarkus.io/extensions/</a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-title">Supported Specifications</div>
+        <a href="https://quarkus.io/standards/" target="_blank" rel="noopener">https://quarkus.io/standards/</a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-title">Migration Guide (3.x to 4.x)</div>
+        <a href="https://quarkus.io/guides/migration-guide" target="_blank" rel="noopener">https://quarkus.io/guides/migration-guide</a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-title">Learning &mdash; Quarkus Guides</div>
+        <a href="https://quarkus.io/guides/" target="_blank" rel="noopener">https://quarkus.io/guides/</a>
+      </div>
+    </div>
+  </div>
+
+
+</div><!-- .page -->
+
+<!-- Back to Top Button -->
+<a href="#top" class="back-to-top" id="backToTop" title="Back to top">&#x2191;</a>
+
+<script>
+// Back to top visibility
+const btn = document.getElementById('backToTop');
+window.addEventListener('scroll', function() {
+  if (window.scrollY > 400) {
+    btn.classList.add('visible');
+  } else {
+    btn.classList.remove('visible');
+  }
+});
+</script>
+
+</body>
+</html>

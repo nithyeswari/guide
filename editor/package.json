@@ -1,0 +1,20 @@
+{
+  "name": "guide-living-editor",
+  "version": "1.0.0",
+  "description": "Living Document Editor — AI-powered interactive guide editor",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "manifest": "node scripts/generate-manifest.js",
+    "docker:build": "docker build -t guide-editor -f Dockerfile ..",
+    "docker:run": "docker run -p 3000:3000 --env-file .env guide-editor"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0"
+  }
+}

@@ -12,7 +12,8 @@
       "Bash(cd:*)",
       "Bash(^d \")",
       "Bash(ls:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(echo:*)"
     ],
     "deny": [],
     "ask": []

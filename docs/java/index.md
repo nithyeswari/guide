@@ -104,17 +104,26 @@
   - API Gateway
   - Distributed Tracing
 
-## Quarkus
-- **[Quarkus RESTEasy Reactive — Header Propagation, Internals & Spring Boot Comparison](quarkus.md)**
-  - RESTEasy Reactive internal pipeline and architecture
-  - Why `incomingHeaders` is empty in `ClientHeadersFactory` — diagnosis and root cause
-  - `@NameBinding` filters vs CDI `@Interceptor` — when to use which
-  - Bridge Bean pattern, Vert.x injection, `ReactiveClientHeadersFactory`
-  - Side-by-side comparison with Spring Boot MVC, WebFlux, and OpenFeign
-  - CDI ArC container internals vs Spring DI
-  - Build-time processing, extension system, Dev Services
-  - Industry-standard header propagation for financial services
-  - Anti-patterns and testing strategies
+## Quarkus vs Spring Boot
+- **[Quarkus vs Spring Boot — Complete Engineering Reference](quarkus.md)**
+  - Architecture internals — request pipelines for Quarkus, Spring MVC, and WebFlux
+  - Bootstrap & startup internals — build-time vs runtime philosophy
+  - Dependency injection deep dive — CDI ArC vs Spring DI with annotation mapping
+  - Web layer — JAX-RS vs Spring MVC, REST clients, threading models
+  - Header propagation — Bridge Bean, Vert.x inject, reactive patterns
+  - Data access — Panache (active record + repository) vs Spring Data JPA
+  - Configuration systems — @ConfigMapping vs @ConfigurationProperties
+  - Security architecture — Quarkus Security vs Spring Security
+  - Cross-cutting concerns — CDI @Interceptor vs Spring AOP @Aspect
+  - Messaging — SmallRye Reactive Messaging vs Spring Kafka
+  - Caching, health checks, metrics & observability
+  - Testing — every layer compared with code examples
+  - Native compilation — GraalVM internals for both frameworks
+  - Performance benchmarks — startup, memory, throughput
+  - Anti-patterns — 10+ patterns to avoid in both frameworks
+  - Migration path — Quarkus ↔ Spring Boot with tools (OpenRewrite, MTA)
+  - Industry adoption — Netflix, Vodafone, Lufthansa, JPMorgan case studies
+  - Decision framework — when to use which
 
 ## Cloud Native Patterns
 - Circuit Breaker

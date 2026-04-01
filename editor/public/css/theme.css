@@ -1,0 +1,76 @@
+/* ═══════════════════════════════════════════════════
+   Design System — extracted from jvm-memory-storage.html
+   ═══════════════════════════════════════════════════ */
+
+:root {
+  --bg:       #07090f;
+  --bg1:      #0c0f1a;
+  --bg2:      #111624;
+  --bg3:      #161d2e;
+  --bg4:      #1c2540;
+  --border:   #1e2a45;
+  --border2:  #2a3d60;
+  --cyan:     #00d4ff;
+  --cyan2:    #00a8cc;
+  --green:    #00ff9d;
+  --green2:   #00cc7d;
+  --yellow:   #ffd166;
+  --orange:   #ff8c42;
+  --red:      #ff4757;
+  --purple:   #a78bfa;
+  --text:     #ccd6f6;
+  --text2:    #8892b0;
+  --text3:    #495670;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'IBM Plex Sans', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Grid scanline texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* Animations */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 1; }
+}
